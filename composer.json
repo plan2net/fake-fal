@@ -2,7 +2,7 @@
   "name": "plan2net/fake-fal",
   "description": "Local FAL driver for fake files",
   "type": "typo3-cms-extension",
-  "version": "0.9.2",
+  "version": "1.0.0",
   "require": {
     "typo3/cms-core": ">=6.2.0"
   },
