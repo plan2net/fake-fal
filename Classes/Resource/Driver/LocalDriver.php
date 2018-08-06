@@ -51,14 +51,13 @@ class LocalDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
         $absoluteFilePath = $this->getAbsolutePath($fileIdentifier);
         if (is_file($absoluteFilePath)) {
             $fileExists = true;
-        }
-        else {
+        } else {
             $file = $this->createFakeFile($fileIdentifier);
             if ($file) {
-                $fileExists = true;
+                // if fake file created, return FALSE to trigger LocalCropScaleMaskHelper to write file dimensions on processed file, since the original file does not exist
+                $fileExists = false;
             }
         }
-
         return $fileExists;
     }
 
@@ -106,6 +105,16 @@ class LocalDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
             $modificationTime = $this->getFileModificationTime($file);
             if (strpos($mimeType, 'image') !== false) {
                 $this->createFakeImage($file, $modificationTime);
+                // after the fake image is created mark it as fake in the database:
+                /** @var \TYPO3\CMS\Core\Database\Query\QueryBuilder $queryBuilder */
+                $queryBuilder = GeneralUtility::makeInstance('TYPO3\CMS\Core\Database\ConnectionPool')->getQueryBuilderForTable('sys_file');
+                $queryBuilder
+                    ->update('sys_file')
+                    ->where(
+                        $queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter((int)$file->getUid()))
+                    )
+                    ->set('tx_fakefal_fake', 1)
+                    ->execute();
             }
             // otherwise just touch the file
             else {
