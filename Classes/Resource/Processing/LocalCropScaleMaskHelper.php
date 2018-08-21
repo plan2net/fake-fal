@@ -54,23 +54,18 @@ class LocalCropScaleMaskHelper extends \TYPO3\CMS\Core\Resource\Processing\Local
     }
 
     /**
-     * @param array $result
+     * @param array|null $result
      * @param File  $sourceFile
      * @return array
      */
-    protected function updateImage(array $result, File $sourceFile)
+    protected function updateImage($result, File $sourceFile)
     {
-        // then evaluate if the file is original or fake
-        /** @var \TYPO3\CMS\Core\Database\Query\QueryBuilder $queryBuilder */
-        $queryBuilder = GeneralUtility::makeInstance('TYPO3\CMS\Core\Database\ConnectionPool')->getQueryBuilderForTable('sys_file');
-        /** @var int $isFakeFile */
-        $isFakeFile = $queryBuilder
-            ->select('tx_fakefal_fake')
-            ->from('sys_file')
-            ->where(
-                $queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter((int)$sourceFile->getUid()))
-            )
-            ->execute()->fetchColumn();
+        if (version_compare(TYPO3_version, '8.7', '<') === true) {
+            $isFakeFile = $this->isFakeFile67((int)$sourceFile->getUid());
+        }
+        else {
+            $isFakeFile = $this->isFakeFile((int)$sourceFile->getUid());
+        }
 
         // if the result is empty (ie unprocessed by TYPO3), we try to use the original file
         if (empty($result) && $sourceFile && @is_file($sourceFile->getForLocalProcessing(false))) {
@@ -89,5 +84,36 @@ class LocalCropScaleMaskHelper extends \TYPO3\CMS\Core\Resource\Processing\Local
         }
 
         return $result;
+    }
+
+    /**
+     * @param int $fileUid
+     * @return bool
+     */
+    protected function isFakeFile($fileUid)
+    {
+        /** @var \TYPO3\CMS\Core\Database\Query\QueryBuilder $queryBuilder */
+        $queryBuilder = GeneralUtility::makeInstance('TYPO3\CMS\Core\Database\ConnectionPool')->getQueryBuilderForTable('sys_file');
+        return (bool)$queryBuilder
+            ->select('tx_fakefal_fake')
+            ->from('sys_file')
+            ->where(
+                $queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter((int)$fileUid))
+            )
+            ->execute()->fetchColumn();
+    }
+
+    /**
+     * @param int $fileUid
+     * @return bool
+     */
+    protected function isFakeFile67($fileUid)
+    {
+        /** @var \TYPO3\CMS\Core\Database\DatabaseConnection $TYPO3_DB */
+        global $TYPO3_DB;
+        $result = $TYPO3_DB->sql_query('SELECT tx_fakefal_fake FROM sys_file WHERE uid = ' . (int)$fileUid);
+        list($isFakeFile) = $TYPO3_DB->sql_fetch_row($result);
+
+        return (bool)$isFakeFile;
     }
 }

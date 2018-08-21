@@ -38,6 +38,17 @@ class LocalDriver67 extends LocalDriver
     }
 
     /**
+     * @param int $fileUid
+     * @return bool
+     */
+    protected function markImageAsFake($fileUid)
+    {
+        /** @var \TYPO3\CMS\Core\Database\DatabaseConnection $TYPO3_DB */
+        global $TYPO3_DB;
+        $TYPO3_DB->sql_query('UPDATE sys_file SET tx_fakefal_fake = 1 WHERE uid = ' . (int)$fileUid);
+    }
+
+    /**
      * @param \TYPO3\CMS\Core\Resource\File $file
      * @return string
      */

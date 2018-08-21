@@ -105,16 +105,7 @@ class LocalDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
             $modificationTime = $this->getFileModificationTime($file);
             if (strpos($mimeType, 'image') !== false) {
                 $this->createFakeImage($file, $modificationTime);
-                // after the fake image is created mark it as fake in the database:
-                /** @var \TYPO3\CMS\Core\Database\Query\QueryBuilder $queryBuilder */
-                $queryBuilder = GeneralUtility::makeInstance('TYPO3\CMS\Core\Database\ConnectionPool')->getQueryBuilderForTable('sys_file');
-                $queryBuilder
-                    ->update('sys_file')
-                    ->where(
-                        $queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter((int)$file->getUid()))
-                    )
-                    ->set('tx_fakefal_fake', 1)
-                    ->execute();
+                $this->markImageAsFake($file->getUid());
             }
             // otherwise just touch the file
             else {
@@ -158,6 +149,23 @@ class LocalDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
         }
 
         return $file;
+    }
+
+    /**
+     * @param int $fileUid
+     * @return void
+     */
+    protected function markImageAsFake($fileUid)
+    {
+        /** @var \TYPO3\CMS\Core\Database\Query\QueryBuilder $queryBuilder */
+        $queryBuilder = GeneralUtility::makeInstance('TYPO3\CMS\Core\Database\ConnectionPool')->getQueryBuilderForTable('sys_file');
+        $queryBuilder
+            ->update('sys_file')
+            ->where(
+                $queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter((int)$fileUid))
+            )
+            ->set('tx_fakefal_fake', 1)
+            ->execute();
     }
 
     /**
