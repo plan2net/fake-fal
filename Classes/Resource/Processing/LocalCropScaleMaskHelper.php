@@ -2,6 +2,7 @@
 
 namespace Plan2net\FakeFal\Resource\Processing;
 
+use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\Processing\TaskInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -11,11 +12,12 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  * @package Plan2net\FakeFal\Resource\Processing
  * @author  Wolfgang Klinger <wk@plan2.net>
  * @author  Ioulia Kondratovitch <ik@plan2.net>
+ * @author  Martin Kutschker <mk@plan2.net>
  */
 class LocalCropScaleMaskHelper extends \TYPO3\CMS\Core\Resource\Processing\LocalCropScaleMaskHelper
 {
     /**
-     * @param \TYPO3\CMS\Core\Resource\Processing\TaskInterface $task
+     * @param TaskInterface $task
      * @return array|null
      */
     public function process(TaskInterface $task)
@@ -24,51 +26,66 @@ class LocalCropScaleMaskHelper extends \TYPO3\CMS\Core\Resource\Processing\Local
 
         // proceed with fake-magic only if the driver type is LocalFake:
         if ($driverType === 'LocalFake') {
+            $this->createFileIfMissing($task->getSourceFile());
+        }
 
-            /** @var  \TYPO3\CMS\Core\Resource\File $sourceFile */
-            $sourceFile = $task->getSourceFile();
-            /** @var \TYPO3\CMS\Core\Resource\ResourceStorage $storage */
-            $storage = $sourceFile->getStorage();
-            /** @var string $fileIdentifier */
-            $fileIdentifier = $sourceFile->getIdentifier();
+        $result = parent::process($task);
 
-            // force driver LocalFake to create the fake-file first if original file is missing, before creating processed files
-            $storage->hasFile($fileIdentifier);
+        if ($driverType === 'LocalFake') {
+            $result = $this->updateImage($result, $task->getSourceFile());
+        }
 
-            // then evaluate if the file is original or fake
-            /** @var \TYPO3\CMS\Core\Database\Query\QueryBuilder $queryBuilder */
-            $queryBuilder = GeneralUtility::makeInstance('TYPO3\CMS\Core\Database\ConnectionPool')->getQueryBuilderForTable('sys_file');
-            /** @var int $isFakeFile */
-            $isFakeFile = $queryBuilder
-                ->select('tx_fakefal_fake')
-                ->from('sys_file')
-                ->where(
-                    $queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter((int)$sourceFile->getUid()))
-                )
-                ->execute()->fetchColumn();
+        return $result;
+    }
 
-            $result = parent::process($task);
+    /**
+     * @param File $sourceFile
+     * @return void
+     */
+    protected function createFileIfMissing(File $sourceFile)
+    {
+        /** @var \TYPO3\CMS\Core\Resource\ResourceStorage $storage */
+        $storage = $sourceFile->getStorage();
+        /** @var string $fileIdentifier */
+        $fileIdentifier = $sourceFile->getIdentifier();
 
-            // if the result is empty, we try to use the original file
-            if (empty($result) && $task->getSourceFile() &&
-                @is_file($task->getSourceFile()->getForLocalProcessing(false))) {
-                $result = [
-                    'filePath' => $task->getSourceFile()->getForLocalProcessing(false),
-                    'width' => $task->getSourceFile()->getProperty('width'),
-                    'height' => $task->getSourceFile()->getProperty('height')
-                ];
-            }
+        // force driver LocalFake to create the fake-file first if original file is missing, before creating processed files
+        $storage->hasFile($fileIdentifier);
+    }
 
-            // write diemensions only if it is a fake file:
-            if ($isFakeFile) {
-                /** @var \Plan2net\FakeFal\Resource\Processing\Helper $processingHelper */
-                $processingHelper = GeneralUtility::makeInstance('Plan2net\FakeFal\Resource\Processing\Helper');
-                $processingHelper->writeDimensionsOntoImage($result['filePath'], $result['width'], $result['height']);
-            }
+    /**
+     * @param array $result
+     * @param File  $sourceFile
+     * @return array
+     */
+    protected function updateImage(array $result, File $sourceFile)
+    {
+        // then evaluate if the file is original or fake
+        /** @var \TYPO3\CMS\Core\Database\Query\QueryBuilder $queryBuilder */
+        $queryBuilder = GeneralUtility::makeInstance('TYPO3\CMS\Core\Database\ConnectionPool')->getQueryBuilderForTable('sys_file');
+        /** @var int $isFakeFile */
+        $isFakeFile = $queryBuilder
+            ->select('tx_fakefal_fake')
+            ->from('sys_file')
+            ->where(
+                $queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter((int)$sourceFile->getUid()))
+            )
+            ->execute()->fetchColumn();
 
-        } else {
-            // just process normally if it is not LocalFake driver:
-            $result = parent::process($task);
+        // if the result is empty (ie unprocessed by TYPO3), we try to use the original file
+        if (empty($result) && $sourceFile && @is_file($sourceFile->getForLocalProcessing(false))) {
+            $result = [
+                'filePath' => $sourceFile->getForLocalProcessing(false),
+                'width' => $sourceFile->getProperty('width'),
+                'height' => $sourceFile->getProperty('height'),
+            ];
+        }
+
+        // write dimensions only if it is a fake file
+        if ($isFakeFile) {
+            /** @var \Plan2net\FakeFal\Resource\Processing\Helper $processingHelper */
+            $processingHelper = GeneralUtility::makeInstance('Plan2net\FakeFal\Resource\Processing\Helper');
+            $processingHelper->writeDimensionsOntoImage($result['filePath'], $result['width'], $result['height']);
         }
 
         return $result;
