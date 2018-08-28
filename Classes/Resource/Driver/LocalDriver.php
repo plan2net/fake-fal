@@ -114,7 +114,7 @@ class LocalDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
                 GeneralUtility::fixPermissions($targetFilePath);
                 $fileSignature = FileSignature::getSignature($file->getExtension());
                 if ($fileSignature) {
-                    file_put_contents($targetFilePath, $fileSignature);
+                    @file_put_contents($targetFilePath, $fileSignature);
                 }
             }
         }
