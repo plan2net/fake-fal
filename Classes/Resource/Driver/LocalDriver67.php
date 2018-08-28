@@ -50,28 +50,15 @@ class LocalDriver67 extends LocalDriver
 
     /**
      * @param \TYPO3\CMS\Core\Resource\File $file
-     * @return string
+     * @return array
      */
-    protected function getFileMimeType($file) {
+    protected function getFileData($file) {
         /** @var \TYPO3\CMS\Core\Database\DatabaseConnection $TYPO3_DB */
         global $TYPO3_DB;
-        $result = $TYPO3_DB->sql_query('SELECT mime_type FROM sys_file WHERE uid = ' . (int)$file->getUid());
-        list($mimeType) = $TYPO3_DB->sql_fetch_row($result);
+        $result = $TYPO3_DB->sql_query('SELECT * FROM sys_file WHERE uid = ' . (int)$file->getUid());
+        $row = $TYPO3_DB->sql_fetch_assoc($result);
 
-        return $mimeType;
-    }
-
-    /**
-     * @param \TYPO3\CMS\Core\Resource\File $file
-     * @return int
-     */
-    protected function getFileModificationTime($file) {
-        /** @var \TYPO3\CMS\Core\Database\DatabaseConnection $TYPO3_DB */
-        global $TYPO3_DB;
-        $result = $TYPO3_DB->sql_query('SELECT modification_date FROM sys_file WHERE uid = ' . (int)$file->getUid());
-        list($modificationTime) = $TYPO3_DB->sql_fetch_row($result);
-
-        return (int)$modificationTime;
+        return (array)$row;
     }
 
 }

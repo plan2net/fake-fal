@@ -98,19 +98,16 @@ class LocalDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
             if (!is_dir($targetDirectoryPath)) {
                 GeneralUtility::mkdir_deep($targetDirectoryPath);
             }
-            // we can't use the $file->getMimeType method,
-            // as this would possibly lead to recursion
-            $mimeType = $this->getFileMimeType($file);
-            // in case it's an image, create a file with the right dimensions
-            $modificationTime = $this->getFileModificationTime($file);
-            if (strpos($mimeType, 'image') !== false) {
-                $this->createFakeImage($file, $modificationTime);
+            // we can't use the $file->getXXX() methods as this would possibly lead to recursion
+            $data = $this->getFileData($file);
+            if ((int)$data['type'] === \TYPO3\CMS\Core\Resource\AbstractFile::FILETYPE_IMAGE) {
+                $this->createFakeImage($file, $data['modification_date']);
                 $this->markImageAsFake($file->getUid());
             }
             // otherwise just touch the file
             else {
                 $targetFilePath = $this->getAbsolutePath($fileIdentifier);
-                touch($targetFilePath, $modificationTime);
+                touch($targetFilePath, $data['modification_date']);
                 GeneralUtility::fixPermissions($targetFilePath);
                 $fileSignature = FileSignature::getSignature($file->getExtension());
                 if ($fileSignature) {
@@ -227,34 +224,17 @@ class LocalDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
      * @param \TYPO3\CMS\Core\Resource\File $file
      * @return string
      */
-    protected function getFileMimeType($file) {
+    protected function getFileData($file) {
         /** @var \TYPO3\CMS\Core\Database\Query\QueryBuilder $queryBuilder */
         $queryBuilder = GeneralUtility::makeInstance('TYPO3\CMS\Core\Database\ConnectionPool')->getQueryBuilderForTable('sys_file');
 
         return $queryBuilder
-            ->select('mime_type')
+            ->select('*')
             ->from('sys_file')
             ->where(
                 $queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter($file->getUid()))
             )
-            ->execute()->fetchColumn(0);
-    }
-
-    /**
-     * @param \TYPO3\CMS\Core\Resource\File $file
-     * @return int
-     */
-    protected function getFileModificationTime($file) {
-        /** @var \TYPO3\CMS\Core\Database\Query\QueryBuilder $queryBuilder */
-        $queryBuilder = GeneralUtility::makeInstance('TYPO3\CMS\Core\Database\ConnectionPool')->getQueryBuilderForTable('sys_file');
-
-        return (int)$queryBuilder
-            ->select('modification_date')
-            ->from('sys_file')
-            ->where(
-                $queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter($file->getUid()))
-            )
-            ->execute()->fetchColumn(0);
+            ->execute()->fetch(\PDO::FETCH_ASSOC);
     }
 
 }
