@@ -1,9 +1,13 @@
-# Extend sys_file WITH marker FOR fake-files
+#
+# Table structure for table 'sys_file'
+#
 CREATE TABLE sys_file (
 	tx_fakefal_fake tinyint(1) unsigned DEFAULT '0' NOT NULL
 );
 
-# Extend sys_file_storage WITH field FOR original driver-type
+#
+# Table structure for table 'sys_file_storage'
+#
 CREATE TABLE sys_file_storage (
-	driver_original tinytext
+	tx_fakefal_enable tinyint(1) unsigned DEFAULT '0' NOT NULL
 );

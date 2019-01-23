@@ -4,7 +4,7 @@ $EM_CONF[$_EXTKEY] = [
     'title' => 'Local FAL driver for fake files',
     'description' => '',
     'category' => 'be',
-    'author' => 'Wolfgang Klinger',
+    'author' => 'Wolfgang Klinger & others',
     'author_email' => 'wk@plan2.net',
     'shy' => '',
     'conflicts' => '',
@@ -18,10 +18,10 @@ $EM_CONF[$_EXTKEY] = [
     'clearCacheOnLoad' => 1,
     'lockType' => '',
     'author_company' => 'plan2net GmbH',
-    'version' => '1.0.0',
+    'version' => '2.0.0',
     'constraints' => [
         'depends' => [
-            'typo3' => '6.2.0-8.7.99'
+            'typo3' => '8.7.0-9.5.99'
         ],
         'conflicts' => [
         ],

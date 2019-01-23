@@ -1,73 +1,122 @@
 <?php
+declare(strict_types=1);
 
 namespace Plan2net\FakeFal\Resource\Processing;
 
 use TYPO3\CMS\Core\Imaging\GraphicalFunctions;
-use TYPO3\CMS\Core\Utility\CommandUtility;
+use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Class Helper
- *
  * @package Plan2net\FakeFal\Resource\Processing
- * @author  Wolfgang Klinger <wk@plan2.net>
+ * @author Wolfgang Klinger <wk@plan2.net>
  */
-class Helper
+class Helper implements SingletonInterface
 {
+
+    /**
+     * @var GraphicalFunctions
+     */
+    protected $graphicalFunctions;
+
     /**
      * @param string $filepath
-     * @param int    $width
-     * @param int    $height
+     * @param int $width
+     * @param int $height
      */
-    public function writeDimensionsOntoImage($filepath, $width, $height)
+    public function writeDimensionsOnImage(string $filepath, int $width, int $height): void
     {
-        $fontSize = 10;
-        $textWidth = 0;
-        while ($textWidth < $width) {
-            $offsets = $this->getGraphicalFunctionsObject()->ImageTTFBBoxWrapper($fontSize, 0,
-                GeneralUtility::getFileAbsFileName('EXT:install/Resources/Private/Font/vera.ttf'), $width . 'x' . $height, []);
-            $textWidth = abs($offsets[0] - $offsets[2]) + 20;
-            $fitsTimes = floor($width / $textWidth);
-            if ($fitsTimes > 1 && ($fontSize * $fitsTimes) > $fontSize) {
-                $fontSize = $fontSize * $fitsTimes;
-            }
-            else {
-                break;
-            }
-        }
-        /* does nothing … ?
-        $image = $this->getGraphicalFunctionsObject()->imageCreateFromFile($filepath);
-        if ($image) {
-            $white = imagecolorallocate($image, 255, 255, 255);
-            $this->getGraphicalFunctionsObject()->ImageTTFTextWrapper($image, $fontSize, 0, 20, 0, $white, GeneralUtility::getFileAbsFileName('EXT:install/Resources/Private/Font/vera.ttf'), $width . 'x' . $height, []);
-        }
-        */
-        // @todo
-        // this currently creates a new image, but I want to write the text onto an existing one
-        // centered and nice …
-        $params = '-size ' . $width . 'x' . $height . ' -background lightgrey';
-        $params .= ' -gravity Center -fill white -pointsize ' . $fontSize;
-        $params .= ' caption:\'' . $width . 'x' . $height . '\'';
-        $cmd = CommandUtility::imageMagickCommand('convert', $params . ' ' . escapeshellarg($filepath));
-        CommandUtility::exec($cmd);
-        // Change the permissions of the file
-        GeneralUtility::fixPermissions($filepath);
+        $font = GeneralUtility::getFileAbsFileName('EXT:core/Resources/Private/Font/nimbus.ttf');
+
+        // Calculate font size and text position (centered)
+        $text = $width . 'x' . $height;
+        $fontSize = $this->calculateFontSize($font, $width, $height, $text);
+        [$x, $y] = $this->calculateTextPosition($font, $fontSize, $width, $height, $text);
+
+        // Write text onto image
+        $graphicalFunctions = $this->getGraphicalFunctionsObject();
+        $image = $graphicalFunctions->imageCreateFromFile($filepath);
+        $black = imagecolorallocate($image, 100, 100, 100);
+        imagettftext($image, $fontSize, 0, $x, $y, $black, $font, $text);
+        $graphicalFunctions->ImageWrite($image, $filepath);
     }
 
     /**
      * @return GraphicalFunctions
      */
-    protected function getGraphicalFunctionsObject()
+    protected function getGraphicalFunctionsObject(): GraphicalFunctions
     {
-        static $graphicalFunctionsObject = null;
-
-        if ($graphicalFunctionsObject === null) {
+        if ($this->graphicalFunctions === null) {
             /** @var GraphicalFunctions $graphicalFunctionsObject */
-            $graphicalFunctionsObject = GeneralUtility::makeInstance('TYPO3\CMS\Core\Imaging\GraphicalFunctions');
-            $graphicalFunctionsObject->init();
+            $this->graphicalFunctions = GeneralUtility::makeInstance(GraphicalFunctions::class);
+            $this->graphicalFunctions->init();
         }
 
-        return $graphicalFunctionsObject;
+        return $this->graphicalFunctions;
+    }
+
+    /**
+     * Calculate font size based on font, image width and the text
+     * so the text fits the image with some margin
+     *
+     * @param string $font
+     * @param int $width
+     * @param int $height
+     * @param string $text
+     * @return int
+     */
+    protected function calculateFontSize(string $font, int $width, int $height, string $text): int
+    {
+        // add some margin
+        $width -= $width * 0.1;
+        $height -= $height * 0.1;
+
+        $fontSize = 12; // default
+        $textWidth = 0;
+        while ($textWidth < $width) {
+            $offsets = imagettfbbox($fontSize, 0, $font, $text);
+            $textWidth = abs($offsets[4]);
+            $textHeight = abs($offsets[5]);
+            $fitsTimes = $width / $textWidth;
+            if (($height / $textHeight) < $fitsTimes) {
+                $fitsTimes = $height / $textHeight;
+            }
+            if ($fitsTimes > 1 && ($fontSize * $fitsTimes) > $fontSize) {
+                $fontSize *= $fitsTimes;
+            } else {
+                break;
+            }
+        }
+
+        return $fontSize < 12 ? 12 : (int)$fontSize;
+    }
+
+    /**
+     * Calculate text position (centered)
+     *
+     * @param string $font
+     * @param int $fontSize
+     * @param int $width
+     * @param int $height
+     * @param string $text
+     * @return array
+     */
+    protected function calculateTextPosition(
+        string $font,
+        int $fontSize,
+        int $width,
+        int $height,
+        string $text
+    ): array {
+        $textBox = imagettfbbox($fontSize, 0, $font, $text);
+        $textWidth = $textBox[2] - $textBox[0];
+        $textHeight = $textBox[7] - $textBox[1];
+
+        return [
+            (int)floor(($width / 2) - ($textWidth / 2)) - 1,
+            (int)floor(($height / 2) - ($textHeight / 2))
+        ];
     }
 
 }

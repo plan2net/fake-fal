@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.0">
+    <file source-language="en" datatype="plaintext" original="messages" date="2018-12-07T20:22:32Z" product-name="fake_fal">
+        <header/>
+        <body>
+            <trans-unit id="sys_file_storage.tx_fakefal_enable">
+				<source>Is local fake storage?</source>
+			</trans-unit>
+            <trans-unit id="extension.writeImageDimensions">
+                <source>Write image dimensions on fake images</source>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>
