@@ -1,18 +1,18 @@
 <?php
 declare(strict_types=1);
 
-namespace Plan2net\FakeFal\Resource\Processing;
+namespace Plan2net\FakeFal\Utility;
 
 use TYPO3\CMS\Core\Imaging\GraphicalFunctions;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
- * Class Helper
- * @package Plan2net\FakeFal\Resource\Processing
+ * Class ImageDimensionsWriter
+ * @package Plan2net\FakeFal\Utility
  * @author Wolfgang Klinger <wk@plan2.net>
  */
-class Helper implements SingletonInterface
+class ImageDimensionsWriter implements SingletonInterface
 {
 
     /**
@@ -25,15 +25,13 @@ class Helper implements SingletonInterface
      * @param int $width
      * @param int $height
      */
-    public function writeDimensionsOnImage(string $filepath, int $width, int $height): void
+    public function write(string $filepath, int $width, int $height): void
     {
         $font = GeneralUtility::getFileAbsFileName('EXT:core/Resources/Private/Font/nimbus.ttf');
-
         // Calculate font size and text position (centered)
         $text = $width . 'x' . $height;
         $fontSize = $this->calculateFontSize($font, $width, $height, $text);
         [$x, $y] = $this->calculateTextPosition($font, $fontSize, $width, $height, $text);
-
         // Write text onto image
         $graphicalFunctions = $this->getGraphicalFunctionsObject();
         $image = $graphicalFunctions->imageCreateFromFile($filepath);

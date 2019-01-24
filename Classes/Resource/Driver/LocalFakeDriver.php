@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Plan2net\FakeFal\Resource\Driver;
 
 use Plan2net\FakeFal\Utility\FileSignature;
+use Plan2net\FakeFal\Utility\ImageDimensionsWriter;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
@@ -201,13 +202,17 @@ class LocalFakeDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
         /** @var MetaDataRepository $metaDataRepository */
         $metaDataRepository = GeneralUtility::makeInstance(MetaDataRepository::class);
         $metaData = $metaDataRepository->findByFile($file);
-        $imageWidth = (int)$metaData['width'];
-        $imageHeight = (int)$metaData['height'];
+        $width = (int)$metaData['width'];
+        $height = (int)$metaData['height'];
         $targetFilePath = $this->getAbsolutePath($file->getIdentifier());
-        $params = '-size ' . $imageWidth . 'x' . $imageHeight . ' xc:lightgrey';
+        $params = '-size ' . $width . 'x' . $height . ' xc:lightgrey';
         $cmd = CommandUtility::imageMagickCommand('convert', $params . ' ' . escapeshellarg($targetFilePath));
         CommandUtility::exec($cmd);
         GeneralUtility::fixPermissions($targetFilePath);
+
+        /** @var ImageDimensionsWriter $imageDimensionsWriter */
+        $imageDimensionsWriter = GeneralUtility::makeInstance(ImageDimensionsWriter::class);
+        $imageDimensionsWriter->write($targetFilePath, $width, $height);
 
         return $targetFilePath;
     }

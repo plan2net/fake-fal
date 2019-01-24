@@ -1,2 +1,0 @@
-# cat=global; type=boolean; label=LLL:EXT:fake_fal/Resources/Private/Language/locallang_db.xlf:extension.writeImageDimensions
-writeImageDimensions = 1

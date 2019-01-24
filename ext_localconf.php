@@ -11,16 +11,4 @@ defined('TYPO3_MODE') or die('Access denied');
         \Plan2net\FakeFal\Resource\Slot\ResourceFactorySlot::class,
         'initializeResourceStorage'
     );
-
-    // Currently not using the API, as it's different between 8 and 9
-    $extensionConfiguration = (array)unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['fake_fal']);
-    if ((bool)$extensionConfiguration['writeImageDimensions']) {
-        $dispatcher->connect(
-            \TYPO3\CMS\Core\Resource\ResourceStorage::class,
-            \TYPO3\CMS\Core\Resource\Service\FileProcessingService::SIGNAL_PostFileProcess,
-            \Plan2net\FakeFal\Resource\Slot\FileProcessingServiceSlot::class,
-            'postProcessFile'
-        );
-    }
-
 })();
