@@ -3,7 +3,7 @@
   "license": "GNU GENERAL PUBLIC LICENSE Version 3",
   "description": "Local FAL storage driver with fake files",
   "type": "typo3-cms-extension",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "keywords": [
     "TYPO3",
     "extension",

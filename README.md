@@ -16,12 +16,14 @@ Composer:
     composer require "plan2net/fake-fal" --dev
 
 Activate the extension in the Extension Manager.
-You can deactivate writing image dimensions on the fake images here (it's active by default).
- 
-    writeImageDimensions = 0
+You have to explicitely set the flag `enable` to register the fake local driver.
 
-Activate the fake mode for your local storages.
-Either via Backend (by editing the storage record) or via command line command:
+    enable = 1
+    
+(default is 0)
+
+After activating the local fake driver (see above), you have to activate the fake mode for specific local storages.
+Either via backend (by editing the storage record) or via command line command:
 
     fakestorage:togglefakemode
     
@@ -50,7 +52,7 @@ Support for TYPO3 CMS 6 and 7 and PHP < 7.1 has been dropped deliberatly.
 
 There's the filefill extension from Nicole Cordes.
 
-Here's the story: I had the idea for fake_fal for quite a while and there was a Fedex Day (a day where we explore new ideas and create cool things in our company) I wanted to create this extension. The result after one day of coding was the first working version. 
+Here's the story: I had the idea for plan2net/fake-fal for quite a while and there was a Fedex Day (a day where we explore new ideas and create cool things in our company) I wanted to create this extension. The result after one day of coding was the first working version. 
 
 This was around two weeks after Nicole published her extension. I didn't know anything about it. A week later a colleague said "Hey, I heard about an extension that sounds like yours!" At first I was dissappointed, but gladly there's quite a difference.
 

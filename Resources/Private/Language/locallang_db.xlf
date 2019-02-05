@@ -6,6 +6,9 @@
             <trans-unit id="sys_file_storage.tx_fakefal_enable">
 				<source>Is local fake storage?</source>
 			</trans-unit>
+            <trans-unit id="extension.enable">
+                <source>Enable the fake-fal driver</source>
+            </trans-unit>
             <trans-unit id="extension.writeImageDimensions">
                 <source>Write image dimensions on fake images</source>
             </trans-unit>
