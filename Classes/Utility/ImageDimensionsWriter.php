@@ -35,9 +35,11 @@ class ImageDimensionsWriter implements SingletonInterface
         // Write text onto image
         $graphicalFunctions = $this->getGraphicalFunctionsObject();
         $image = $graphicalFunctions->imageCreateFromFile($filepath);
-        $black = imagecolorallocate($image, 100, 100, 100);
-        imagettftext($image, $fontSize, 0, $x, $y, $black, $font, $text);
-        $graphicalFunctions->ImageWrite($image, $filepath);
+        if ($image) {
+            $black = imagecolorallocate($image, 100, 100, 100);
+            imagettftext($image, $fontSize, 0, $x, $y, $black, $font, $text);
+            $graphicalFunctions->ImageWrite($image, $filepath);
+        }
     }
 
     /**
