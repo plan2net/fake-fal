@@ -14,5 +14,9 @@ defined('TYPO3_MODE') or die('Access denied');
             \Plan2net\FakeFal\Resource\Slot\ResourceFactorySlot::class,
             'initializeResourceStorage'
         );
+
+        $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Core\Resource\ResourceFactory::class] = [
+            'className' => \Plan2net\FakeFal\Resource\Core\ResourceFactory::class
+        ];
     }
 })();

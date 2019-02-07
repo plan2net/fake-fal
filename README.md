@@ -48,6 +48,10 @@ Create fake files within given storage(s); the existing real files will be kept
 The extension is tested and works with TYPO3 CMS LTS 8.7 and 9.5 and PHP > 7.1.
 Support for TYPO3 CMS 6 and 7 and PHP < 7.1 has been dropped deliberatly.
 
+# Integration information
+
+We extend the core class `\TYPO3\CMS\Core\Resource\ResourceFactory` to overcome the hardcoded check with `is_file` in the method `retrieveFileOrFolderObject`. Just be aware of this if you use any other extension doing so or extend the class yourself.
+
 # Alternatives
 
 There's the filefill extension from Nicole Cordes.

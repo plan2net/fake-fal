@@ -37,22 +37,6 @@ class LocalFakeDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
     }
 
     /**
-     * @param string $folderIdentifier
-     * @return array
-     * @throws \TYPO3\CMS\Core\Resource\Exception\FolderDoesNotExistException
-     * @throws \TYPO3\CMS\Core\Resource\Exception\InvalidPathException
-     */
-    public function getFolderInfoByIdentifier($folderIdentifier): array
-    {
-        $absoluteFilePath = $this->getAbsolutePath($folderIdentifier);
-        if (!file_exists($absoluteFilePath) || !is_dir($absoluteFilePath)) {
-            $this->createFakeFolder($folderIdentifier);
-        }
-
-        return parent::getFolderInfoByIdentifier($folderIdentifier);
-    }
-
-    /**
      * Checks if a file exists.
      * In case of the fake driver the file always exists and will be
      * created if it does not physically exist on disk
@@ -81,10 +65,10 @@ class LocalFakeDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
      */
     public function folderExists($folderIdentifier): bool
     {
-        $absoluteFilePath = $this->getAbsolutePath($folderIdentifier);
-        if (!is_dir($absoluteFilePath)) {
+        $absoluteFolderPath = $this->getAbsolutePath($folderIdentifier);
+        if (!is_dir($absoluteFolderPath)) {
             try {
-                $this->createFakeFolder($folderIdentifier);
+                $this->createFakeFolder($absoluteFolderPath);
             } catch (\RuntimeException $e) {
                 // unable to create directory
                 return false;
@@ -158,9 +142,9 @@ class LocalFakeDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
         $file = $this->getFileByIdentifier($fileIdentifier);
         if ($file && !$file->getStorage()->isWithinProcessingFolder($fileIdentifier)) {
             // check if parent directory exists, if not create it
-            $targetDirectoryPath = dirname($file->getIdentifier());
-            if (!is_dir($targetDirectoryPath)) {
-                $this->createFakeFolder($targetDirectoryPath);
+            $absoluteFolderPath = $this->getAbsolutePath(dirname($file->getIdentifier()));
+            if (!is_dir($absoluteFolderPath)) {
+                $this->createFakeFolder($absoluteFolderPath);
             }
             // we can't use the $file->getXXX() methods as this would possibly lead to recursion
             $data = $this->getFileData($file);
@@ -178,15 +162,14 @@ class LocalFakeDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
     }
 
     /**
-     * @param string $folderIdentifier
+     * @param string $absoluteFolderPath
      * @return void
      * @throws \RuntimeException
      */
-    protected function createFakeFolder(string $folderIdentifier): void
+    protected function createFakeFolder(string $absoluteFolderPath): void
     {
         try {
-            $absolutePath = $this->getAbsolutePath($folderIdentifier);
-            GeneralUtility::mkdir_deep($absolutePath);
+            GeneralUtility::mkdir_deep($absoluteFolderPath);
         } catch (\Exception $e) {
             throw new \RuntimeException($e->getMessage());
         }
@@ -207,6 +190,7 @@ class LocalFakeDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
         $targetFilePath = $this->getAbsolutePath($file->getIdentifier());
         $params = '-size ' . $width . 'x' . $height . ' xc:lightgrey';
         $cmd = CommandUtility::imageMagickCommand('convert', $params . ' ' . escapeshellarg($targetFilePath));
+
         CommandUtility::exec($cmd);
         GeneralUtility::fixPermissions($targetFilePath);
 
@@ -229,7 +213,9 @@ class LocalFakeDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
         $targetFilePath = $this->getAbsolutePath($file->getIdentifier());
         $fileSignature = FileSignature::getSignature($file->getExtension());
         if ($fileSignature) {
-            @file_put_contents($targetFilePath, $fileSignature);
+            $fp = fopen($targetFilePath, 'wb');
+            fwrite($fp, $fileSignature);
+            fclose($fp);
         }
 
         return $targetFilePath;

@@ -13,60 +13,23 @@ namespace Plan2net\FakeFal\Utility;
 class FileSignature
 {
     /**
-     * see https://en.wikipedia.org/wiki/List_of_file_signatures
+     * see https://en.wikipedia.org/wiki/List_of_file_signatures,
+     * https://www.garykessler.net/library/file_sigs.html
      * and other sources for a reference
      * @var array
      */
     static protected $signatures = [
-        'BMP' => '\x42\x4D',
-        'EXE' => '\x4D\x5A',
-        'TAR' => '\x1F\x9D',
-        'MP3' => '\xFF\xFB',
-        'SWF' => '\x43\x57\x53',
-        'ICO' => '\x00\x00\x01\x00',
-        'MPG' => '\x00\x00\x01\xBA',
-        'WEBM' => '\x1A\x45\xDF\xA3',
-        'GZ' => '\x1F\x8B\x08\x08',
-        'TGZ' => '\x1F\x9D\x90\x70',
-        'PDF' => '\x25\x50\x44\x46\x2D\x31\x2E\x0D\x74\x72\x61\x69\x6C\x65\x72\x3C\x3C\x2F\x52\x6F\x6F\x74\x3C\x3C\x2F\x50\x61\x67\x65\x73\x3C\x3C\x2F\x4B\x69\x64\x73\x5B\x3C\x3C\x2F\x4D\x65\x64\x69\x61\x42\x6F\x78\x5B\x30\x20\x30\x20\x33\x20\x33\x5D\x3E\x3E\x5D\x3E\x3E\x3E\x3E\x3E\x3E',
-        'WMV' => '\x30\x26\xB2\x75',
-        'FLV' => '\x46\x4C\x56\x01',
-        'TIF' => '\x49\x49\x2A\x00',
-        'TIFF' => '\x49\x49\x2A\x00',
-        'MIDI' => '\x4D\x54\x68\x64',
-        'DLL' => '\x4D\x5A\x90\x00',
-        'NES' => '\x4E\x45\x53\x1A',
-        'OGG' => '\x4F\x67\x67\x53',
-        'ZIP' => '\x50\x4B\x03\x04',
-        'ODT' => '\x50\x4B\x03\x04',
-        'ODS' => '\x50\x4B\x03\x04',
-        'ODP' => '\x50\x4B\x03\x04',
-        'DOCX' => '\x50\x4B\x03\x04',
-        'XLSX' => '\x50\x4B\x03\x04',
-        'PPTX' => '\x50\x4B\x03\x04',
-        'VSDX' => '\x50\x4B\x03\x04',
-        'JAR' => '\x5F\x27\xA8\x89',
-        'FLAC' => '\x66\x4C\x61\x43',
-        'IMG' => '\x7E\x74\x2C\x01',
-        'JPG' => '\xFF\xD8\xFF\xE0',
-        'JPEG' => '\xFF\xD8\xFF\xE0',
-        'SYS' => '\xFF\xFF\xFF\xFF',
-        'ISO' => '\x43\x44\x30\x30\x31',
-        '7ZIP' => '\x37\x7A\xBC\xAF\x27\x1C',
-        'GIF' => '\x47\x49\x46\x38\x39\x61',
-        'RAR' => '\x52\x61\x72\x21\x1A\x07\x00',
-        '3GP' => '\x00\x00\x00\x00\x66\x74\x79\x70\x33\x67\x70',
-        'MP4' => '\x00\x00\x00\x14\x66\x74\x79\x70\x69\x73\x6F\x6D',
-        'MOV' => '\x00\x00\x00\x14\x66\x74\x79\x70\x71\x74\x20\x20',
-        'WAV' => '\x52\x49\x46\x46\x00\x00\x00\x00\x57\x41\x56\x45',
-        'AVI' => '\x52\x49\x46\x46\x00\x00\x00\x00\x41\x56\x49\x20\x4C\x49\x53\x54',
-        'PPT' => '\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1',
-        'DOC' => '\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1',
-        'XLS' => '\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1',
-        'PSD' => '\x38\x42\x50\x53'
+        'PDF' => '255044462d',
+        'PPT' => 'D0CF11E0A1B11AE1',
+        'DOC' => 'D0CF11E0A1B11AE1',
+        'XLS' => 'D0CF11E0A1B11AE1',
+        'ZIP' => '504B0304',
+        'MP4' => '00000000667479704D534E56'
     ];
 
     /**
+     * Returns a binary representation of the signature
+     *
      * @param string $fileExtension
      * @return string|null
      */
@@ -74,7 +37,7 @@ class FileSignature
     {
         $fileExtension = strtoupper($fileExtension);
 
-        return self::$signatures[$fileExtension] ?? null;
+        return isset(self::$signatures[$fileExtension]) ? hex2bin(self::$signatures[$fileExtension]) : null;
     }
 
 }
