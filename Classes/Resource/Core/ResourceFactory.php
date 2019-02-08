@@ -56,8 +56,10 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
             return null;
         }
         $input = PathUtility::getCanonicalPath(ltrim($input, '/'));
+        // fix core bug, value is url encoded
+        $input = urldecode($input);
         // fake_fal: don't check for physical file here
-        if ($this->isFile($input)) {
+        if (!empty($input) && $this->isFile($input)) {
             return $this->getFileObjectFromCombinedIdentifier($input);
         }
 
