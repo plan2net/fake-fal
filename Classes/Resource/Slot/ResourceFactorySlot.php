@@ -27,7 +27,7 @@ class ResourceFactorySlot
     public function initializeResourceStorage(
         ResourceFactory $resourceFactory,
         ResourceStorage $resourceStorage
-    ): void {
+    ) {
         $storageRecord = $resourceStorage->getStorageRecord();
         // virtual default storage
         if ($storageRecord['uid'] === 0) {

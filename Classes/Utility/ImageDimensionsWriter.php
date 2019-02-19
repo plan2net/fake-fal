@@ -25,13 +25,13 @@ class ImageDimensionsWriter implements SingletonInterface
      * @param int $width
      * @param int $height
      */
-    public function write(string $filepath, int $width, int $height): void
+    public function write(string $filepath, int $width, int $height)
     {
         $font = GeneralUtility::getFileAbsFileName('EXT:core/Resources/Private/Font/nimbus.ttf');
         // Calculate font size and text position (centered)
         $text = $width . 'x' . $height;
         $fontSize = $this->calculateFontSize($font, $width, $height, $text);
-        [$x, $y] = $this->calculateTextPosition($font, $fontSize, $width, $height, $text);
+        list($x, $y) = $this->calculateTextPosition($font, $fontSize, $width, $height, $text);
         // Write text onto image
         $graphicalFunctions = $this->getGraphicalFunctionsObject();
         $image = $graphicalFunctions->imageCreateFromFile($filepath);

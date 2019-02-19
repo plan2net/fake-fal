@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Plan2net\FakeFal\Resource\Core;
 
-use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
 use TYPO3\CMS\Core\Resource\StorageRepository;
@@ -30,7 +29,7 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
      */
     public function retrieveFileOrFolderObject($input)
     {
-        $input = str_replace(Environment::getPublicPath() . '/', '', $input);
+        $input = str_replace($this->getPublicPath() . '/', '', $input);
 
         if (GeneralUtility::isFirstPartOfStr($input, 'file:')) {
             $input = substr($input, 5);
@@ -50,7 +49,7 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
                     return null;
                 }
 
-                $input = PathUtility::getRelativePath(Environment::getPublicPath() . '/', PathUtility::dirname($input)) . PathUtility::basename($input);
+                $input = PathUtility::getRelativePath($this->getPublicPath() . '/', PathUtility::dirname($input)) . PathUtility::basename($input);
                 return $this->getFileObjectFromCombinedIdentifier($input);
             }
             return null;
@@ -79,7 +78,7 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
         foreach ($this->getLocalStorages() as $storage) {
             // Remove possible path prefix
             $storageBasePath = rtrim($storage->getConfiguration()['basePath'], '/');
-            $pathSite = Environment::getPublicPath();
+            $pathSite = $this->getPublicPath();
             if (strpos($storageBasePath, $pathSite) === 0) {
                 $storageBasePath = substr($storageBasePath, strlen($pathSite));
             }
@@ -112,6 +111,19 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
         $storageRepository = GeneralUtility::makeInstance(StorageRepository::class);
 
         return $storageRepository->findByStorageType('Local');
+    }
+
+    /**
+     * @return string
+     * @deprecated
+     */
+    protected function getPublicPath(): string
+    {
+        if (\TYPO3\CMS\Core\Utility\VersionNumberUtility::convertVersionNumberToInteger(TYPO3_version) >= 8007099) {
+            return \TYPO3\CMS\Core\Core\Environment::getPublicPath();
+        }
+
+        return PATH_site; // deprecated
     }
 
 }

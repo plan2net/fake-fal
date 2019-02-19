@@ -33,7 +33,7 @@ class FileSignature
      * @param string $fileExtension
      * @return string|null
      */
-    public static function getSignature(string $fileExtension): ?string
+    public static function getSignature(string $fileExtension)
     {
         $fileExtension = strtoupper($fileExtension);
 

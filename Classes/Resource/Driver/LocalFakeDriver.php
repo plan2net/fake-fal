@@ -109,7 +109,7 @@ class LocalFakeDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
      * @param string $fileIdentifier
      * @return \TYPO3\CMS\Core\Resource\File|null
      */
-    protected function getFileByIdentifier(string $fileIdentifier): ?File
+    protected function getFileByIdentifier(string $fileIdentifier)
     {
         $file = null;
         /** @var \TYPO3\CMS\Core\Database\Query\QueryBuilder $queryBuilder */
@@ -136,7 +136,7 @@ class LocalFakeDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
      * @return null|\TYPO3\CMS\Core\Resource\File
      * @throws \TYPO3\CMS\Core\Resource\Exception\InvalidPathException
      */
-    protected function createFakeFile(string $fileIdentifier): ?File
+    protected function createFakeFile(string $fileIdentifier)
     {
         // create fake file only, if file data exists in the database
         $file = $this->getFileByIdentifier($fileIdentifier);
@@ -166,7 +166,7 @@ class LocalFakeDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
      * @return void
      * @throws \RuntimeException
      */
-    protected function createFakeFolder(string $absoluteFolderPath): void
+    protected function createFakeFolder(string $absoluteFolderPath)
     {
         try {
             GeneralUtility::mkdir_deep($absoluteFolderPath);
@@ -242,7 +242,7 @@ class LocalFakeDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
     /**
      * @param File $file
      */
-    protected function markFileAsFake(File $file): void
+    protected function markFileAsFake(File $file)
     {
         /** @var \TYPO3\CMS\Core\Database\Query\QueryBuilder $queryBuilder */
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file');

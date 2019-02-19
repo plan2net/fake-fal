@@ -34,7 +34,7 @@ class FakeStorageCommandController extends \TYPO3\CMS\Extbase\Mvc\Controller\Com
      * @param string $storageIds Comma separated IDs of the target storages. If nothing provided, all available local storages will be affected.
      * @return void
      */
-    public function toggleFakeModeCommand(string $storageIds = ''): void
+    public function toggleFakeModeCommand(string $storageIds = '')
     {
         $storages = $this->getAvailableLocalStorages();
         if (empty($storageIds)) {
@@ -72,7 +72,7 @@ class FakeStorageCommandController extends \TYPO3\CMS\Extbase\Mvc\Controller\Com
      * @param string $path Optional path
      * @return void
      */
-    public function createFakeFilesCommand(string $storageIds, string $path = ''): void
+    public function createFakeFilesCommand(string $storageIds, string $path = '')
     {
         $storages = $this->getAvailableFakeStorages();
         /** @var int $storageUid */
@@ -135,7 +135,7 @@ class FakeStorageCommandController extends \TYPO3\CMS\Extbase\Mvc\Controller\Com
      * @param string $path
      * @return void
      */
-    protected function createFakeFiles(int $storageUid, string $path = '/'): void
+    protected function createFakeFiles(int $storageUid, string $path = '/')
     {
         /** @var QueryBuilder $queryBuilder */
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file');
@@ -175,7 +175,7 @@ class FakeStorageCommandController extends \TYPO3\CMS\Extbase\Mvc\Controller\Com
      * @throws \TYPO3\CMS\Core\Resource\Exception\InsufficientUserPermissionsException
      * @throws \TYPO3\CMS\Core\Resource\Exception\InvalidPathException
      */
-    protected function deleteProcessedFiles(int $storageUid): void
+    protected function deleteProcessedFiles(int $storageUid)
     {
         $storage = $this->resourceFactory->getStorageObject($storageUid);
         $processingFolder = $storage->getProcessingFolder();
