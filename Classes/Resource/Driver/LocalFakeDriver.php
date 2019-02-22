@@ -162,12 +162,20 @@ class LocalFakeDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
     }
 
     /**
+     * Create a fake folder when required,
+     * except for default storage (0)
+     *
      * @param string $absoluteFolderPath
      * @return void
      * @throws \RuntimeException
+     * @throws \UnexpectedValueException
      */
     protected function createFakeFolder(string $absoluteFolderPath)
     {
+        if ($this->storageUid === 0) {
+            throw new \UnexpectedValueException('Local default storage, no folder created');
+        }
+
         try {
             GeneralUtility::mkdir_deep($absoluteFolderPath);
         } catch (\Exception $e) {
