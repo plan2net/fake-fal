@@ -12,6 +12,9 @@
             <trans-unit id="extension.writeImageDimensions">
                 <source>Write image dimensions on fake images</source>
             </trans-unit>
+            <trans-unit id="extension.imageGenerator">
+                <source>Image generator</source>
+            </trans-unit>
         </body>
     </file>
 </xliff>

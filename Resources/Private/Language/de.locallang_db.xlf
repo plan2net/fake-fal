@@ -9,6 +9,9 @@
             <trans-unit id="extension.writeImageDimensions">
                 <target>Schreibe Bild-Dimensionen in Fake-Bilder</target>
             </trans-unit>
+            <trans-unit id="extension.imageGenerator">
+                <target>Bildgenerator</target>
+            </trans-unit>
         </body>
     </file>
 </xliff>

@@ -7,22 +7,31 @@ Create missing files on the fly for testing/development.
 Instead of keeping gigabytes of files in sync with your test/development system, the extension creates useful fake files.
 It acts like a local file driver and creates missing files with the correct file signature (and in case of images in the original file's dimensions) and folders, so PHP's finfo (and others) return the correct mime type.
 
-You can let the extension create fake files on the fly when used (when visiting a page in the browser) or create fake files for all files which are not available on disk at once via a command (Backend > Scheduler or command line).
+You can let the extension create fake files on the fly (when visiting a page in the browser) or create fake files for all files which are not available on disk at once via a command (Backend > Scheduler or command line).
+
+![fake-fal Example](Resources/Public/Screenshots/example.png)
 
 # Installation
 
-Composer:
+Require the composer package:
 
     composer require "plan2net/fake-fal" --dev
 
-Activate the extension in the Extension Manager.
+Activate the extension in the Extension Manager and update the settings.
+
 You have to explicitely set the flag `enable` to register the fake local driver.
 
-    enable = 1
-    
-(default is 0)
+    enable = 1 (default is 0 = inactive)
 
-After activating the local fake driver (see above), you have to activate the fake mode for specific local storages.
+Set an image generator
+
+    imageGeneratorType = Plan2net\FakeFal\Resource\Generator\LocalFakeImageGenerator
+    
+(Currently there's only one local image generator available, so just stick with the default value)
+
+Save the configuration.
+
+After activating the local fake driver globally, you have to activate the fake mode for specific local storages.
 Either via backend (by editing the storage record) or via command line command:
 
     fakestorage:togglefakemode
@@ -31,7 +40,7 @@ will set all local storages to fake mode.
 
     fakestorage:togglefakemode 2,14,99
     
-will set given storages (e.g. 2, 14 and 99) to fake mode.
+will set the given storages (with ID `2`, `14` and `99`) to fake mode.
 
 ## Available Commands:
 
@@ -54,11 +63,14 @@ We extend the core class `\TYPO3\CMS\Core\Resource\ResourceFactory` to overcome 
 
 # Alternatives
 
-There's the filefill extension from Nicole Cordes.
+There's the [_filefill_](https://github.com/IchHabRecht/filefill) extension from Nicole Cordes.
 
-Here's the story: I had the idea for plan2net/fake-fal for quite a while and there was a Fedex Day (a day where we explore new ideas and create cool things in our company) I wanted to create this extension. The result after one day of coding was the first working version. 
+Here's the story: I had the idea for _plan2net/fake-fal_ for quite a while and there was a Fedex Day (a day where we explore new ideas and create cool things in our company) I wanted to create this extension. The result after one day of coding was the first working version. 
 
-This was around two weeks after Nicole published her extension. I didn't know anything about it. A week later a colleague said "Hey, I heard about an extension that sounds like yours!" At first I was dissappointed, but gladly there's quite a difference.
+This was around two weeks after Nicole published her extension. I didn't know anything about it. A week later a colleague said 
+> Hey, I heard about an extension that sounds like yours!
+ 
+At first I was dissappointed, but gladly there's quite a difference.
 
-Our extension works without an Internet connection and creates the files locally. Additionally the file dimensions are written into the fake images by default.
+_plan2net/fake-fal_ works offline and creates the files locally. Additionally the file dimensions are written into the fake images.
 And if you download a fake PDF it will behave like a real document.

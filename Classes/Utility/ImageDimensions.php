@@ -8,11 +8,11 @@ use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
- * Class ImageDimensionsWriter
+ * Class ImageDimensions
  * @package Plan2net\FakeFal\Utility
  * @author Wolfgang Klinger <wk@plan2.net>
  */
-class ImageDimensionsWriter implements SingletonInterface
+class ImageDimensions implements SingletonInterface
 {
 
     /**

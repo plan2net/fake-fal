@@ -3,13 +3,13 @@ declare(strict_types=1);
 
 namespace Plan2net\FakeFal\Resource\Driver;
 
+use Plan2net\FakeFal\Resource\Generator\ImageGeneratorFactory;
+use Plan2net\FakeFal\Resource\Generator\ImageGeneratorInterface;
+use Plan2net\FakeFal\Utility\Configuration;
 use Plan2net\FakeFal\Utility\FileSignature;
-use Plan2net\FakeFal\Utility\ImageDimensionsWriter;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Resource\File;
-use TYPO3\CMS\Core\Resource\Index\MetaDataRepository;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
-use TYPO3\CMS\Core\Utility\CommandUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -190,23 +190,17 @@ class LocalFakeDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
      */
     protected function createFakeImage(File $file): string
     {
-        /** @var MetaDataRepository $metaDataRepository */
-        $metaDataRepository = GeneralUtility::makeInstance(MetaDataRepository::class);
-        $metaData = $metaDataRepository->findByFile($file);
-        $width = (int)$metaData['width'];
-        $height = (int)$metaData['height'];
-        $targetFilePath = $this->getAbsolutePath($file->getIdentifier());
-        $params = '-size ' . $width . 'x' . $height . ' xc:lightgrey';
-        $cmd = CommandUtility::imageMagickCommand('convert', $params . ' ' . escapeshellarg($targetFilePath));
+        $filePath = $this->getAbsolutePath($file->getIdentifier());
+        $generatorType = Configuration::getExtensionConfiguration('imageGeneratorType');
+        /** @var ImageGeneratorInterface $generator */
+        $generator = ImageGeneratorFactory::create($generatorType);
 
-        CommandUtility::exec($cmd);
-        GeneralUtility::fixPermissions($targetFilePath);
+        try {
+            $filePath = $generator->generate($file, $filePath);
+        } catch (\Exception $e) {
+        }
 
-        /** @var ImageDimensionsWriter $imageDimensionsWriter */
-        $imageDimensionsWriter = GeneralUtility::makeInstance(ImageDimensionsWriter::class);
-        $imageDimensionsWriter->write($targetFilePath, $width, $height);
-
-        return $targetFilePath;
+        return $filePath;
     }
 
     /**

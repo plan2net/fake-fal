@@ -1,2 +1,4 @@
 # cat=global; type=boolean; label=LLL:EXT:fake_fal/Resources/Private/Language/locallang_db.xlf:extension.enable
 enable = 0
+# cat=global; type=options[Local fake image generator=Plan2net\FakeFal\Resource\Generator\LocalFakeImageGenerator]; label=LLL:EXT:fake_fal/Resources/Private/Language/locallang_db.xlf:extension.imageGenerator
+imageGeneratorType =
