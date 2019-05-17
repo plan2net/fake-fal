@@ -17,5 +17,6 @@ defined('TYPO3_MODE') or die('Access denied');
         $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Core\Resource\ResourceFactory::class] = [
             'className' => \Plan2net\FakeFal\Resource\Core\ResourceFactory::class
         ];
+        $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['extbase']['commandControllers'][] = 'Plan2net\FakeFal\Command\FakeStorageCommandController';
     }
 })();
