@@ -22,10 +22,10 @@ class LocalFakeImageGenerator implements ImageGeneratorInterface
      * in $filePath path
      *
      * @param File $file
-     * @param $filePath
+     * @param string $filePath
      * @return mixed
      */
-    public function generate(File $file, $filePath): string
+    public function generate(File $file, string $filePath): string
     {
         list($width, $height) = $this->getFileDimensions($file);
         if ($width && $height) {
