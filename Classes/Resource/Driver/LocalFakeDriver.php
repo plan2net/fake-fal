@@ -7,7 +7,11 @@ use Plan2net\FakeFal\Resource\Generator\ImageGeneratorFactory;
 use Plan2net\FakeFal\Resource\Generator\ImageGeneratorInterface;
 use Plan2net\FakeFal\Utility\Configuration;
 use Plan2net\FakeFal\Utility\FileSignature;
+use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Query\QueryBuilder;
+use TYPO3\CMS\Core\Resource\Exception\InvalidConfigurationException;
+use TYPO3\CMS\Core\Resource\Exception\InvalidPathException;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -19,12 +23,54 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  */
 class LocalFakeDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
 {
+    /**
+     * Calculates the absolute path to this drivers storage location.
+     * Creates the given base path directory if it does not exist.
+     *
+     * @param array $configuration
+     * @return string
+     * @throws InvalidConfigurationException
+     * @throws InvalidPathException
+     */
+    protected function calculateBasePath(array $configuration): string
+    {
+        if (!array_key_exists('basePath', $configuration) || empty($configuration['basePath'])) {
+            throw new InvalidConfigurationException(
+                'Configuration must contain base path.',
+                1346510477
+            );
+        }
+
+        if (!empty($configuration['pathType']) && $configuration['pathType'] === 'relative') {
+            $relativeBasePath = $configuration['basePath'];
+            $absoluteBasePath = Environment::getPublicPath() . '/' . $relativeBasePath;
+        } else {
+            $absoluteBasePath = $configuration['basePath'];
+        }
+        $absoluteBasePath = $this->canonicalizeAndCheckFilePath($absoluteBasePath);
+        $absoluteBasePath = rtrim($absoluteBasePath, '/') . '/';
+        // Create directories instead of raising an exception
+        if (!is_dir($absoluteBasePath)) {
+            if (!mkdir($absoluteBasePath, 0777, true) && !is_dir($absoluteBasePath)) {
+                throw new \RuntimeException(sprintf('Directory "%s" could not be created', $absoluteBasePath));
+            }
+        }
+
+        $processingFolderPath = rtrim($absoluteBasePath, '/') . '/' . $this->getProcessingFolderForStorage();
+        if (!is_dir($processingFolderPath)) {
+            if (!mkdir($processingFolderPath, 0777, true) && !is_dir($processingFolderPath)) {
+                throw new \RuntimeException(sprintf('Directory "%s" could not be created', $path));
+            }
+        }
+
+        return $absoluteBasePath;
+    }
 
     /**
      * @param string $fileIdentifier
      * @param array $propertiesToExtract
      * @return array
-     * @throws \TYPO3\CMS\Core\Resource\Exception\InvalidPathException
+     * @throws InvalidPathException
      */
     public function getFileInfoByIdentifier($fileIdentifier, array $propertiesToExtract = []): array
     {
@@ -43,7 +89,7 @@ class LocalFakeDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
      *
      * @param string $fileIdentifier
      * @return bool
-     * @throws \TYPO3\CMS\Core\Resource\Exception\InvalidPathException
+     * @throws InvalidPathException
      */
     public function fileExists($fileIdentifier): bool
     {
@@ -61,7 +107,7 @@ class LocalFakeDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
     /**
      * @param string $folderIdentifier
      * @return bool
-     * @throws \TYPO3\CMS\Core\Resource\Exception\InvalidPathException
+     * @throws InvalidPathException
      */
     public function folderExists($folderIdentifier): bool
     {
@@ -82,7 +128,7 @@ class LocalFakeDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
      * @param string $fileIdentifier
      * @param bool $writable
      * @return string
-     * @throws \TYPO3\CMS\Core\Resource\Exception\InvalidPathException
+     * @throws InvalidPathException
      */
     public function getFileForLocalProcessing($fileIdentifier, $writable = true): string
     {
@@ -107,12 +153,12 @@ class LocalFakeDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
      * as this would lead to endless recursion
      *
      * @param string $fileIdentifier
-     * @return \TYPO3\CMS\Core\Resource\File|null
+     * @return File|null
      */
     protected function getFileByIdentifier(string $fileIdentifier)
     {
         $file = null;
-        /** @var \TYPO3\CMS\Core\Database\Query\QueryBuilder $queryBuilder */
+        /** @var QueryBuilder $queryBuilder */
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file');
         $fileData = $queryBuilder
             ->select('*')
@@ -133,8 +179,8 @@ class LocalFakeDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
 
     /**
      * @param string $fileIdentifier
-     * @return null|\TYPO3\CMS\Core\Resource\File
-     * @throws \TYPO3\CMS\Core\Resource\Exception\InvalidPathException
+     * @return null|File
+     * @throws InvalidPathException
      */
     protected function createFakeFile(string $fileIdentifier)
     {
@@ -184,9 +230,9 @@ class LocalFakeDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
     }
 
     /**
-     * @param \TYPO3\CMS\Core\Resource\File $file
+     * @param File $file
      * @return string
-     * @throws \TYPO3\CMS\Core\Resource\Exception\InvalidPathException
+     * @throws InvalidPathException
      */
     protected function createFakeImage(File $file): string
     {
@@ -208,7 +254,7 @@ class LocalFakeDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
      *
      * @param File $file
      * @return string
-     * @throws \TYPO3\CMS\Core\Resource\Exception\InvalidPathException
+     * @throws InvalidPathException
      */
     protected function createFakeDocument(File $file): string
     {
@@ -224,12 +270,12 @@ class LocalFakeDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
     }
 
     /**
-     * @param \TYPO3\CMS\Core\Resource\File $file
+     * @param File $file
      * @return array
      */
     protected function getFileData(File $file): array
     {
-        /** @var \TYPO3\CMS\Core\Database\Query\QueryBuilder $queryBuilder */
+        /** @var QueryBuilder $queryBuilder */
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file');
 
         return $queryBuilder
@@ -246,7 +292,7 @@ class LocalFakeDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
      */
     protected function markFileAsFake(File $file)
     {
-        /** @var \TYPO3\CMS\Core\Database\Query\QueryBuilder $queryBuilder */
+        /** @var QueryBuilder $queryBuilder */
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file');
         $queryBuilder
             ->update('sys_file')
@@ -257,4 +303,21 @@ class LocalFakeDriver extends \TYPO3\CMS\Core\Resource\Driver\LocalDriver
             ->execute();
     }
 
+    /**
+     * @return mixed
+     */
+    protected function getProcessingFolderForStorage() {
+        /** @var QueryBuilder $queryBuilder */
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file_storage');
+        $path = $queryBuilder
+            ->select('processingfolder')
+            ->from('sys_file_storage')
+            ->where(
+                $queryBuilder->expr()->eq('uid', (int)$this->storageUid)
+            )
+            ->execute()->fetch(\PDO::FETCH_COLUMN);
+
+        // Assume '_processed_' as default
+        return $path ?? '_processed_';
+    }
 }
