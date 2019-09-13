@@ -74,6 +74,7 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
      */
     protected function isFile(string $path): bool
     {
+        $originalPath = $path;
         /** @var ResourceStorage $storage */
         foreach ($this->getLocalStorages() as $storage) {
             // Remove possible path prefix
@@ -82,8 +83,8 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
             if (strpos($storageBasePath, $pathSite) === 0) {
                 $storageBasePath = substr($storageBasePath, strlen($pathSite));
             }
-            if (strpos($path, $storageBasePath) === 0) {
-                $path = substr($path, strlen($storageBasePath));
+            if (strpos($originalPath, $storageBasePath) === 0) {
+                $path = substr($originalPath, strlen($storageBasePath));
             }
 
             /** @var \TYPO3\CMS\Core\Database\Query\QueryBuilder $queryBuilder */
@@ -95,6 +96,7 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
                     $queryBuilder->expr()->like('identifier',
                         $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($path)))
                 )->execute()->fetchColumn()) {
+
                 return true;
             }
         }
