@@ -52,6 +52,7 @@ class FakeStorageCommandController extends \TYPO3\CMS\Extbase\Mvc\Controller\Com
             $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
                 ->getQueryBuilderForTable('sys_file_storage');
             $status = (int)$queryBuilder->select('tx_fakefal_enable')
+                ->from('sys_file_storage')
                 ->where(
                     $queryBuilder->expr()->eq('uid', $storageId)
                 )->execute()->fetch(\PDO::FETCH_COLUMN);
