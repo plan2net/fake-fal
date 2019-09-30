@@ -59,7 +59,7 @@ Support for TYPO3 CMS 6 and 7 and PHP < 7.1 has been dropped deliberatly.
 
 # Integration information
 
-We extend the core class `\TYPO3\CMS\Core\Resource\ResourceFactory` to overcome the hardcoded check with `is_file` in the method `retrieveFileOrFolderObject`. Just be aware of this if you use any other extension doing so or extend the class yourself.
+We extend the core class `\TYPO3\CMS\Core\Resource\ResourceFactory` to overcome the hardcoded check with `is_file` in the method `retrieveFileOrFolderObject` and we extend the core class `\TYPO3\CMS\Core\Resource\ResourceStorage` to reset the `isOnline` flag of the storage. Just be aware of this if you use any other extension doing so or extend the class yourself.
 
 # Alternatives
 

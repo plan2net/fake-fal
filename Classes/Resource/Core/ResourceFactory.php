@@ -3,29 +3,37 @@ declare(strict_types=1);
 
 namespace Plan2net\FakeFal\Resource\Core;
 
+use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Query\QueryBuilder;
+use TYPO3\CMS\Core\Resource\Exception\FileDoesNotExistException;
+use TYPO3\CMS\Core\Resource\Exception\ResourceDoesNotExistException;
+use TYPO3\CMS\Core\Resource\File;
+use TYPO3\CMS\Core\Resource\FileInterface;
+use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
 use TYPO3\CMS\Core\Resource\StorageRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
+use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 
 /**
  * Class ResourceFactory
+ *
  * @package Plan2net\FakeFal\Resource\Core
  * @author Wolfgang Klinger <wk@plan2.net>
  */
 class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
 {
-
     /**
      * Copy from core's ResourceFactory,
      * for modifications see fake_fal comment inline
      *
      * @param string $input
-     * @return \TYPO3\CMS\Core\Resource\File|\TYPO3\CMS\Core\Resource\FileInterface|\TYPO3\CMS\Core\Resource\Folder|null
-     * @throws \TYPO3\CMS\Core\Resource\Exception\FileDoesNotExistException
-     * @throws \TYPO3\CMS\Core\Resource\Exception\ResourceDoesNotExistException
+     * @return File|FileInterface|Folder|null
+     * @throws FileDoesNotExistException
+     * @throws ResourceDoesNotExistException
      */
     public function retrieveFileOrFolderObject($input)
     {
@@ -33,6 +41,7 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
 
         if (GeneralUtility::isFirstPartOfStr($input, 'file:')) {
             $input = substr($input, 5);
+
             return $this->retrieveFileOrFolderObject($input);
         }
         if (MathUtility::canBeInterpretedAsInteger($input)) {
@@ -49,13 +58,16 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
                     return null;
                 }
 
-                $input = PathUtility::getRelativePath($this->getPublicPath() . '/', PathUtility::dirname($input)) . PathUtility::basename($input);
+                $input = PathUtility::getRelativePath($this->getPublicPath() . '/',
+                        PathUtility::dirname($input)) . PathUtility::basename($input);
+
                 return $this->getFileObjectFromCombinedIdentifier($input);
             }
+
             return null;
         }
         $input = PathUtility::getCanonicalPath(ltrim($input, '/'));
-        // fix core bug, value is url encoded
+        // Fix core bug, value is url encoded
         $input = urldecode($input);
         // fake_fal: don't check for physical file here
         if (!empty($input) && $this->isFile($input)) {
@@ -63,6 +75,19 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
         }
 
         return $this->getFolderObjectFromCombinedIdentifier($input);
+    }
+
+    /**
+     * @return string
+     * @deprecated
+     */
+    protected function getPublicPath(): string
+    {
+        if (VersionNumberUtility::convertVersionNumberToInteger(TYPO3_version) >= 8007099) {
+            return Environment::getPublicPath();
+        }
+
+        return PATH_site; // deprecated
     }
 
     /**
@@ -87,7 +112,7 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
                 $path = substr($originalPath, strlen($storageBasePath));
             }
 
-            /** @var \TYPO3\CMS\Core\Database\Query\QueryBuilder $queryBuilder */
+            /** @var QueryBuilder $queryBuilder */
             $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file');
             if ((bool)$queryBuilder
                 ->count('uid')
@@ -96,7 +121,6 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
                     $queryBuilder->expr()->like('identifier',
                         $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($path)))
                 )->execute()->fetchColumn()) {
-
                 return true;
             }
         }
@@ -114,18 +138,4 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
 
         return $storageRepository->findByStorageType('Local');
     }
-
-    /**
-     * @return string
-     * @deprecated
-     */
-    protected function getPublicPath(): string
-    {
-        if (\TYPO3\CMS\Core\Utility\VersionNumberUtility::convertVersionNumberToInteger(TYPO3_version) >= 8007099) {
-            return \TYPO3\CMS\Core\Core\Environment::getPublicPath();
-        }
-
-        return PATH_site; // deprecated
-    }
-
 }

@@ -11,12 +11,12 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Class LocalFakeImageGenerator
+ *
  * @package Plan2net\FakeFal\Resource\Generator
  * @author Wolfgang Klinger <wk@plan2.net>
  */
 class LocalFakeImageGenerator implements ImageGeneratorInterface
 {
-
     /**
      * Generate a new local file based on File $file metadata
      * in $filePath path
@@ -62,5 +62,4 @@ class LocalFakeImageGenerator implements ImageGeneratorInterface
             (int)$metaData['height']
         ];
     }
-
 }

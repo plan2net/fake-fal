@@ -10,14 +10,14 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Class ResourceFactorySlot
+ *
  * @package Plan2net\FakeFal\Resource\Slot
  * @author Wolfgang Klinger <wk@plan2.net>
  */
 class ResourceFactorySlot
 {
-
     /**
-     * Replace the current driver for the storage
+     * Replaces the current driver for the storage
      * if the original driver type is 'local' and
      * the fake driver is enabled in storage configuration
      *
@@ -29,18 +29,17 @@ class ResourceFactorySlot
         ResourceStorage $resourceStorage
     ) {
         $storageRecord = $resourceStorage->getStorageRecord();
-        // virtual default storage
+        // Virtual default storage
         if ($storageRecord['uid'] === 0) {
             $configuration = $resourceStorage->getConfiguration();
-            // default configuration
+            // Default configuration
             $configuration += [
                 'basePath' => '/',
                 'pathType' => 'relative'
             ];
             $resourceStorage->setConfiguration($configuration);
             $resourceStorage->setDriver($this->getFakeDriver($resourceStorage));
-        }
-        else {
+        } else {
             $isLocalDriver = $storageRecord['driver'] === 'Local';
             $isFakeDriverEnabled = !empty($storageRecord['tx_fakefal_enable']);
             if ($isLocalDriver && $isFakeDriverEnabled) {
@@ -65,5 +64,4 @@ class ResourceFactorySlot
 
         return $driver;
     }
-
 }

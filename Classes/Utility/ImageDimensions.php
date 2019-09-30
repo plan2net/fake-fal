@@ -9,12 +9,12 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Class ImageDimensions
+ *
  * @package Plan2net\FakeFal\Utility
  * @author Wolfgang Klinger <wk@plan2.net>
  */
 class ImageDimensions implements SingletonInterface
 {
-
     /**
      * @var GraphicalFunctions
      */
@@ -40,20 +40,6 @@ class ImageDimensions implements SingletonInterface
             imagettftext($image, $fontSize, 0, $x, $y, $black, $font, $text);
             $graphicalFunctions->ImageWrite($image, $filepath);
         }
-    }
-
-    /**
-     * @return GraphicalFunctions
-     */
-    protected function getGraphicalFunctionsObject(): GraphicalFunctions
-    {
-        if ($this->graphicalFunctions === null) {
-            /** @var GraphicalFunctions $graphicalFunctionsObject */
-            $this->graphicalFunctions = GeneralUtility::makeInstance(GraphicalFunctions::class);
-            $this->graphicalFunctions->init();
-        }
-
-        return $this->graphicalFunctions;
     }
 
     /**
@@ -119,4 +105,17 @@ class ImageDimensions implements SingletonInterface
         ];
     }
 
+    /**
+     * @return GraphicalFunctions
+     */
+    protected function getGraphicalFunctionsObject(): GraphicalFunctions
+    {
+        if ($this->graphicalFunctions === null) {
+            /** @var GraphicalFunctions $graphicalFunctionsObject */
+            $this->graphicalFunctions = GeneralUtility::makeInstance(GraphicalFunctions::class);
+            $this->graphicalFunctions->init();
+        }
+
+        return $this->graphicalFunctions;
+    }
 }

@@ -1,7 +1,7 @@
 {
   "name": "plan2net/fake-fal",
   "license": "GNU GENERAL PUBLIC LICENSE Version 3",
-  "description": "Local FAL storage driver with fake files",
+  "description": "Local FAL storage driver for fake files",
   "type": "typo3-cms-extension",
   "keywords": [
     "TYPO3",
@@ -25,10 +25,10 @@
     }
   ],
   "require": {
-    "typo3/cms-core": "^8.7 || ^9.5",
     "php": ">=7.0",
     "ext-gd": "*",
-    "ext-pdo": "*"
+    "ext-pdo": "*",
+    "typo3/cms-core": "^8.7 || ^9.5"
   },
   "autoload": {
     "psr-4": {

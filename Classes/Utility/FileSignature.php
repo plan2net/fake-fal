@@ -16,6 +16,7 @@ class FileSignature
      * see https://en.wikipedia.org/wiki/List_of_file_signatures,
      * https://www.garykessler.net/library/file_sigs.html
      * and other sources for a reference
+     *
      * @var array
      */
     static protected $signatures = [
@@ -39,5 +40,4 @@ class FileSignature
 
         return isset(self::$signatures[$fileExtension]) ? hex2bin(self::$signatures[$fileExtension]) : null;
     }
-
 }

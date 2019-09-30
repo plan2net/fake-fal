@@ -5,12 +5,12 @@ namespace Plan2net\FakeFal\Utility;
 
 /**
  * Class Configuration
+ *
  * @package Plan2net\FakeFal\Utility
  * @author Wolfgang Klinger <wk@plan2.net>
  */
 class Configuration
 {
-
     /**
      * Returns the whole extension configuration or a specific property
      *
@@ -27,10 +27,10 @@ class Configuration
             if (isset($configuration[$key])) {
                 return (string)$configuration[$key];
             }
+
             return null;
         }
 
         return $configuration;
     }
-
 }
