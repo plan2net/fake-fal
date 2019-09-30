@@ -11,7 +11,6 @@ use TYPO3\CMS\Core\Resource\Exception\FileOperationErrorException;
 use TYPO3\CMS\Core\Resource\Exception\InsufficientFolderAccessPermissionsException;
 use TYPO3\CMS\Core\Resource\Exception\InsufficientUserPermissionsException;
 use TYPO3\CMS\Core\Resource\Exception\InvalidPathException;
-use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
@@ -20,8 +19,8 @@ use TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
  * Class FakeStorageCommandController
  *
  * @package Plan2net\FakeFal\Command
- * @author  Wolfgang Klinger <wk@plan2.net>
  * @author  Ioulia Kondratovitch <ik@plan2.net>
+ * @author  Wolfgang Klinger <wk@plan2.net>
  */
 class FakeStorageCommandController extends CommandController
 {
@@ -32,26 +31,24 @@ class FakeStorageCommandController extends CommandController
 
     public function __construct()
     {
-        parent::__construct();
         $this->resourceFactory = ResourceFactory::getInstance();
     }
 
     /**
-     * @param string $storageIds Comma separated IDs of the target storages. If nothing provided, all available local
-     *     storages will be affected.
+     * @param string $storageIdList Comma separated list of storage IDs
      * @return void
      */
-    public function toggleFakeModeCommand(string $storageIds = '')
+    public function toggleFakeModeCommand(string $storageIdList = '')
     {
-        $storages = $this->getAvailableLocalStorages();
-        if (empty($storageIds)) {
-            $storageIds = implode(',', $storages);
+        $countAffected = 0;
+        $localStorageIds = $storageIds = $this->getAvailableLocalStorageIds();
+        if (!empty($storageIdList)) {
+            $storageIds = explode(',', $storageIdList);
         }
-        /** @var int $storageUid */
-        foreach (GeneralUtility::intExplode(',', $storageIds) as $storageId) {
-            if (in_array($storageId, $storages, true)) {
+        foreach ($storageIds as $storageId) {
+            if (in_array($storageId, $localStorageIds, true)) {
                 try {
-                    $this->deleteProcessedFiles($storageId);
+                    $this->deleteProcessedFilesAndFolders($storageId);
                 } catch (Exception $e) {
                 }
             }
@@ -63,138 +60,133 @@ class FakeStorageCommandController extends CommandController
                 ->from('sys_file_storage')
                 ->where(
                     $queryBuilder->expr()->eq('uid', $storageId)
-                )->execute()->fetch(PDO::FETCH_COLUMN);
+                )->execute()->fetchColumn(0);
 
-            $queryBuilder->update('sys_file_storage')
+            $countAffected += $queryBuilder->update('sys_file_storage')
                 ->set('tx_fakefal_enable', $status === 1 ? 0 : 1)
                 ->where(
                     $queryBuilder->expr()->eq('uid', $storageId)
                 )->execute();
         }
+        $this->output->output($countAffected . ' affected storages updated.' . PHP_EOL);
     }
 
     /**
-     * Returns a list of local storages not in fake mode
+     * Returns a list of local storage IDs
      *
      * @return array
      */
-    protected function getAvailableLocalStorages(): array
+    protected function getAvailableLocalStorageIds(): array
     {
         /** @var QueryBuilder $queryBuilder */
-        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file_storage');
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('sys_file_storage');
 
-        return $queryBuilder
-            ->select('uid')
-            ->from('sys_file_storage')
-            ->where(
-                $queryBuilder->expr()->eq('driver', $queryBuilder->quote('Local')),
-                $queryBuilder->expr()->eq('tx_fakefal_enable', 0)
-            )
-            ->execute()
-            ->fetchAll(PDO::FETCH_COLUMN);
+        return $this->getLocalStorageStatement($queryBuilder)->execute()->fetchAll(PDO::FETCH_COLUMN);
     }
 
     /**
-     * @param int $storageUid
+     * @param int $storageId
      * @return void
      * @throws FileOperationErrorException
      * @throws InsufficientFolderAccessPermissionsException
      * @throws InsufficientUserPermissionsException
      * @throws InvalidPathException
      */
-    protected function deleteProcessedFiles(int $storageUid)
+    protected function deleteProcessedFilesAndFolders(int $storageId)
     {
-        $storage = $this->resourceFactory->getStorageObject($storageUid);
+        $storage = $this->resourceFactory->getStorageObject($storageId);
         $processingFolder = $storage->getProcessingFolder();
 
-        // delete files and subfolders
         foreach ($processingFolder->getFiles() as $file) {
             $file->delete();
         }
-        $subFolders = $storage->getFoldersInFolder($processingFolder);
-        /** @var Folder $subFolder */
-        foreach ($subFolders as $subFolder) {
-            $storage->deleteFolder($subFolder, true);
+        $subfolders = $storage->getFoldersInFolder($processingFolder);
+        foreach ($subfolders as $folder) {
+            $storage->deleteFolder($folder, true);
         }
 
-        // delete database entries
+        // Delete processed file database records
         /** @var QueryBuilder $queryBuilder */
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file_processedfile');
         $queryBuilder
             ->delete('sys_file_processedfile')
             ->where(
-                $queryBuilder->expr()->eq('storage', $storageUid)
+                $queryBuilder->expr()->eq('storage', $storageId)
             )
             ->execute();
     }
 
     /**
-     * Creates fake files within given storage(s).
-     * Existing (real) files will be kept.
-     *
-     * @param string $storageIds Comma separated list of storage IDs
+     * @param string $storageIdList Comma separated list of storage IDs
      * @param string $path Optional path
      * @return void
      */
-    public function createFakeFilesCommand(string $storageIds, string $path = '')
+    public function createFakeFilesCommand(string $storageIdList, string $path = '')
     {
-        $storages = $this->getAvailableFakeStorages();
+        $localFakeStorageIds = $this->getAvailableLocalFakeStorageIds();
         /** @var int $storageUid */
-        foreach (GeneralUtility::intExplode(',', $storageIds) as $storageId) {
-            if (in_array($storageId, $storages, true)) {
+        foreach (GeneralUtility::intExplode(',', $storageIdList) as $storageId) {
+            if (in_array($storageId, $localFakeStorageIds, true)) {
                 $this->createFakeFiles($storageId, $path);
             }
         }
     }
 
     /**
-     * @return array available storages matching type
+     * @return array
      */
-    protected function getAvailableFakeStorages(): array
+    protected function getAvailableLocalFakeStorageIds(): array
     {
         /** @var QueryBuilder $queryBuilder */
-        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file_storage');
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('sys_file_storage');
 
+        $statement = $this->getLocalStorageStatement($queryBuilder);
+        $statement->andWhere(
+            $queryBuilder->expr()->eq('tx_fakefal_enable', 1)
+        );
+
+        return $statement->execute()->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    /**
+     * @param QueryBuilder $queryBuilder
+     * @return QueryBuilder
+     */
+    protected function getLocalStorageStatement(QueryBuilder $queryBuilder): QueryBuilder
+    {
         return $queryBuilder
             ->select('uid')
             ->from('sys_file_storage')
             ->where(
-                $queryBuilder->expr()->eq('driver', $queryBuilder->quote('Local')),
-                $queryBuilder->expr()->eq('tx_fakefal_enable', 1)
-            )
-            ->execute()
-            ->fetchAll(PDO::FETCH_COLUMN);
+                $queryBuilder->expr()->eq('driver', $queryBuilder->quote('Local'))
+            );
     }
 
     /**
-     * Creates fake files for given storage and all subfolders.
-     * The subfolders will be created if they do not exist.
-     * The created fake files will get value "1" set in field "tx_fakefal_fake"
-     * in table sys_file.
-     *
-     * @param int $storageUid
+     * @param int $storageId
      * @param string $path
      * @return void
      */
-    protected function createFakeFiles(int $storageUid, string $path = '/')
+    protected function createFakeFiles(int $storageId, string $path = '/')
     {
+        $storage = $this->resourceFactory->getStorageObject($storageId);
+
         /** @var QueryBuilder $queryBuilder */
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file');
-
         $fileIdentifiers = $queryBuilder
             ->select('identifier')
             ->from('sys_file')
             ->where(
-                $queryBuilder->expr()->eq('storage', $storageUid),
+                $queryBuilder->expr()->eq('storage', $storageId),
                 $queryBuilder->expr()->like('identifier',
                     $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($path) . '%'))
             )
             ->execute()->fetchAll(PDO::FETCH_COLUMN);
 
-        $storage = $this->resourceFactory->getStorageObject($storageUid);
-
         foreach ($fileIdentifiers as $fileIdentifier) {
-            // Ask the storage to get the file,
+            // Require the storage to get the file,
             // this will create a fake file
             $file = $storage->getFile($fileIdentifier);
             unset($file);

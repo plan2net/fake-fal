@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Plan2net\FakeFal\Resource\Core;
 
-use TYPO3\CMS\Core\Core\Environment;
+
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\Resource\Exception\FileDoesNotExistException;
@@ -84,7 +84,7 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
     protected function getPublicPath(): string
     {
         if (VersionNumberUtility::convertVersionNumberToInteger(TYPO3_version) >= 8007099) {
-            return Environment::getPublicPath();
+            return \TYPO3\CMS\Core\Core\Environment::getPublicPath();
         }
 
         return PATH_site; // deprecated

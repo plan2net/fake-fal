@@ -10,7 +10,6 @@ use Plan2net\FakeFal\Resource\Generator\ImageGeneratorInterface;
 use Plan2net\FakeFal\Utility\Configuration;
 use Plan2net\FakeFal\Utility\FileSignature;
 use RuntimeException;
-use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\Resource\AbstractFile;
@@ -19,8 +18,8 @@ use TYPO3\CMS\Core\Resource\Exception\InvalidConfigurationException;
 use TYPO3\CMS\Core\Resource\Exception\InvalidPathException;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
-use TYPO3\CMS\Core\Service\FlexFormService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use UnexpectedValueException;
 
 /**
@@ -300,7 +299,7 @@ class LocalFakeDriver extends LocalDriver
 
         if (!empty($configuration['pathType']) && $configuration['pathType'] === 'relative') {
             $relativeBasePath = $configuration['basePath'];
-            $absoluteBasePath = Environment::getPublicPath() . '/' . $relativeBasePath;
+            $absoluteBasePath = $this->getPublicPath() . '/' . $relativeBasePath;
         } else {
             $absoluteBasePath = $configuration['basePath'];
         }
@@ -327,13 +326,13 @@ class LocalFakeDriver extends LocalDriver
     {
         /** @var QueryBuilder $queryBuilder */
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file_storage');
-        $path = $queryBuilder
+        $path = (string)$queryBuilder
             ->select('processingfolder')
             ->from('sys_file_storage')
             ->where(
                 $queryBuilder->expr()->eq('uid', (int)$this->storageUid)
             )
-            ->execute()->fetch(PDO::FETCH_COLUMN);
+            ->execute()->fetchColumn(0);
 
         if (!empty($path)) {
             // Check if this is a combined folder path
@@ -361,22 +360,20 @@ class LocalFakeDriver extends LocalDriver
     {
         /** @var QueryBuilder $queryBuilder */
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file_storage');
-        $configuration = $queryBuilder
+        $configuration = (string)$queryBuilder
             ->select('configuration')
             ->from('sys_file_storage')
             ->where(
                 $queryBuilder->expr()->eq('uid', $storageId)
             )
-            ->execute()->fetch(PDO::FETCH_COLUMN);
-        if ($configuration === null) {
-            throw new RuntimeException('Failed to fetch storage record for ID ' . $storageId);
-        }
-        $flexFormService = GeneralUtility::makeInstance(FlexFormService::class);
+            ->execute()->fetchColumn(0);
+
+        $flexFormService = $this->getFlexFormService();
         $configuration = $flexFormService->convertFlexFormContentToArray($configuration);
 
         if (!empty($configuration['pathType']) && $configuration['pathType'] === 'relative') {
             $relativeBasePath = $configuration['basePath'];
-            $absoluteBasePath = Environment::getPublicPath() . '/' . $relativeBasePath;
+            $absoluteBasePath = $this->getPublicPath() . '/' . $relativeBasePath;
         } else {
             $absoluteBasePath = $configuration['basePath'];
         }
@@ -398,5 +395,33 @@ class LocalFakeDriver extends LocalDriver
         if (!is_dir($path)) {
             throw new RuntimeException(sprintf('Directory "%s" could not be created', $path));
         }
+    }
+
+    /**
+     * @return string
+     * @deprecated
+     */
+    protected function getPublicPath(): string
+    {
+        if (VersionNumberUtility::convertVersionNumberToInteger(TYPO3_version) >= 8007099) {
+            return \TYPO3\CMS\Core\Core\Environment::getPublicPath();
+        }
+
+        return PATH_site; // deprecated
+    }
+
+    /**
+     * @return mixed
+     * @deprecated
+     */
+    protected function getFlexformService()
+    {
+        if (VersionNumberUtility::convertVersionNumberToInteger(TYPO3_version) >= 8007099) {
+            $flexFormService = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Service\FlexFormService::class);
+        } else {
+            $flexFormService = GeneralUtility::makeInstance(\TYPO3\CMS\Extbase\Service\FlexFormService::class);
+        }
+
+        return $flexFormService;
     }
 }
