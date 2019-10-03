@@ -18,6 +18,7 @@ use TYPO3\CMS\Core\Resource\Exception\InvalidConfigurationException;
 use TYPO3\CMS\Core\Resource\Exception\InvalidPathException;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
+use TYPO3\CMS\Core\Resource\ResourceStorageInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use UnexpectedValueException;
@@ -310,7 +311,11 @@ class LocalFakeDriver extends LocalDriver
             $this->createDirectory($absoluteBasePath);
         }
 
-        $processingFolderPath = rtrim($absoluteBasePath, '/') . '/' . $this->getProcessingFolderForStorage();
+        $processingFolderPath = $this->getProcessingFolderForStorage($this->storageUid);
+        // Check if this a relative or absolute path
+        if (strpos($processingFolderPath, '/') !== 0) {
+            $processingFolderPath = rtrim($absoluteBasePath, '/') . '/' . $processingFolderPath;
+        }
         if (!is_dir($processingFolderPath)) {
             $this->createDirectory($processingFolderPath);
         }
@@ -319,18 +324,24 @@ class LocalFakeDriver extends LocalDriver
     }
 
     /**
-     * @return mixed
+     * @param int $storageId
+     * @return string
      * @throws InvalidPathException
      */
-    protected function getProcessingFolderForStorage()
+    protected function getProcessingFolderForStorage(int $storageId): string
     {
+        // Default storage
+        if ($storageId === 0) {
+            return 'typo3temp/assets/_processed_/';
+        }
+
         /** @var QueryBuilder $queryBuilder */
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file_storage');
         $path = (string)$queryBuilder
             ->select('processingfolder')
             ->from('sys_file_storage')
             ->where(
-                $queryBuilder->expr()->eq('uid', (int)$this->storageUid)
+                $queryBuilder->expr()->eq('uid', $storageId)
             )
             ->execute()->fetchColumn(0);
 
@@ -339,16 +350,13 @@ class LocalFakeDriver extends LocalDriver
             $parts = GeneralUtility::trimExplode(':', $path);
             if (count($parts) === 2) {
                 // First part is the numeric storage ID
-                $path = $this->getBasePathForStorage((int)$parts[0]);
-                if (!empty($path)) {
-                    // Second part is the path
-                    $path .= ltrim($parts[1], '/');
-                }
+                $referencedStorageId = (int)$parts[0];
+                $path = $this->getBasePathForStorage($referencedStorageId) .
+                    $this->getProcessingFolderForStorage($referencedStorageId);
             }
         }
 
-        // _processed_ is the default
-        return $path ?? '_processed_';
+        return !empty($path) ? $path : ResourceStorageInterface::DEFAULT_ProcessingFolder;
     }
 
     /**
