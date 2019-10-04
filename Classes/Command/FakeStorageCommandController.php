@@ -35,6 +35,8 @@ class FakeStorageCommandController extends CommandController
     }
 
     /**
+     * Toggle mode of all or given storage(s)
+     *
      * @param string $storageIdList Comma separated list of storage IDs
      * @return void
      */
@@ -118,6 +120,8 @@ class FakeStorageCommandController extends CommandController
     }
 
     /**
+     * Create fake files within all storages, within given storage(s) or within given storage and path
+     *
      * @param string $storageIdList Comma separated list of storage IDs
      * @param string $path Optional path
      * @return void
