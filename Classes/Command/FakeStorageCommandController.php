@@ -215,8 +215,8 @@ class FakeStorageCommandController extends CommandController
         $this->output->output('uid   |   name   |   driver   |   status' . PHP_EOL);
 
         foreach ($storages as $storage) {
-            $isFakeStorage = $storage['tx_fakefal_enable'] === 1 ? 'fake-storage' : 'real storage';
-            $this->output->output($storage['uid'] . '   |   ' . $storage['name'] . '   |   ' . $storage['driver'] . '   |   ' . $isFakeStorage . '   |   ' . PHP_EOL);
+            $status = $storage['tx_fakefal_enable'] === 1 ? 'fake-storage' : 'real storage';
+            $this->output->output($storage['uid'] . '   |   ' . $storage['name'] . '   |   ' . $storage['driver'] . '   |   ' . $status . '   |   ' . PHP_EOL);
         }
     }
 
