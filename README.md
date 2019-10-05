@@ -44,6 +44,10 @@ will set the given storages (with ID `2`, `14` and `99`) to fake mode.
 
 ## Available Commands:
 
+    fakestorage:liststorages
+    
+List all existing storages as a table (command line only)
+
     fakestorage:togglefakemode
     
 Set given storage(s) to fake mode: check flag for fake mode, clear processed files

@@ -35,6 +35,8 @@ class FakeStorageCommandController extends CommandController
     }
 
     /**
+     * Toggle mode of all or given storage(s)
+     *
      * @param string $storageIdList Comma separated list of storage IDs
      * @return void
      */
@@ -118,6 +120,8 @@ class FakeStorageCommandController extends CommandController
     }
 
     /**
+     * Create fake files within all storages, within given storage(s) or within given storage and path
+     *
      * @param string $storageIdList Comma separated list of storage IDs
      * @param string $path Optional path
      * @return void
@@ -192,4 +196,29 @@ class FakeStorageCommandController extends CommandController
             unset($file);
         }
     }
+
+    /**
+     * List all storages
+     *
+     * @cli
+     * @return void
+     */
+    public function listStoragesCommand(): void
+    {
+        /** @var QueryBuilder $queryBuilder */
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('sys_file_storage');
+
+        $storages = $queryBuilder->select('uid', 'name', 'driver', 'tx_fakefal_enable')
+            ->from('sys_file_storage')
+            ->execute()->fetchAll();
+
+        foreach ($storages as &$storage) {
+            $storage['tx_fakefal_enable'] = (bool)$storage['tx_fakefal_enable'] ? 'true' : 'false';
+        }
+        unset($storage);
+
+        $this->output->outputTable($storages, ['uid', 'name', 'driver', 'is fake-storage?']);
+    }
+
 }
