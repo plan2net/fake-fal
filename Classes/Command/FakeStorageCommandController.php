@@ -200,9 +200,10 @@ class FakeStorageCommandController extends CommandController
     /**
      * List all storages
      *
+     * @cli
      * @return void
      */
-    public function ListStoragesCommand(): void
+    public function listStoragesCommand(): void
     {
         /** @var QueryBuilder $queryBuilder */
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
@@ -212,12 +213,12 @@ class FakeStorageCommandController extends CommandController
             ->from('sys_file_storage')
             ->execute()->fetchAll();
 
-        $this->output->output('uid   |   name   |   driver   |   status' . PHP_EOL);
-
-        foreach ($storages as $storage) {
-            $status = $storage['tx_fakefal_enable'] === 1 ? 'fake-storage' : 'real storage';
-            $this->output->output($storage['uid'] . '   |   ' . $storage['name'] . '   |   ' . $storage['driver'] . '   |   ' . $status . '   |   ' . PHP_EOL);
+        foreach ($storages as &$storage) {
+            $storage['tx_fakefal_enable'] = (bool)$storage['tx_fakefal_enable'] ? 'true' : 'false';
         }
+        unset($storage);
+
+        $this->output->outputTable($storages, ['uid', 'name', 'driver', 'is fake-storage?']);
     }
 
 }
