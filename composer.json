@@ -1,7 +1,7 @@
 {
   "name": "plan2net/fake-fal",
-  "license": "GNU GENERAL PUBLIC LICENSE Version 3",
-  "description": "Local FAL storage driver for fake files",
+  "license": "GPL-3.0",
+  "description": "TYPO3 Local FAL storage driver for fake files",
   "type": "typo3-cms-extension",
   "keywords": [
     "TYPO3",
