@@ -30,6 +30,9 @@
     "ext-pdo": "*",
     "typo3/cms-core": "^8.7 || ^9.5"
   },
+  "conflict": {
+    "ichhabrecht/filefill": "*"
+  },
   "autoload": {
     "psr-4": {
       "Plan2net\\FakeFal\\": "Classes/"
