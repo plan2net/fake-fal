@@ -1,10 +1,10 @@
 <?php
 
 $EM_CONF[$_EXTKEY] = [
-    'title' => 'Local FAL driver for fake files',
-    'description' => 'Creates missing files on demand for development',
+    'title' => 'Local FAL driver to create missing files',
+    'description' => 'Creates missing files (images) on demand for development and testing',
     'category' => 'be',
-    'author' => 'Wolfgang Klinger & others',
+    'author' => 'Wolfgang Klinger, Ioulia Kondratovitch, Martin Kutschker',
     'author_email' => 'wk@plan2.net',
     'state' => 'stable',
     'clearCacheOnLoad' => 1,
