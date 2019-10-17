@@ -7,6 +7,7 @@ use Exception;
 use PDO;
 use Plan2net\FakeFal\Resource\Generator\ImageGeneratorFactory;
 use Plan2net\FakeFal\Resource\Generator\ImageGeneratorInterface;
+use Plan2net\FakeFal\Resource\Generator\LocalFakeImageGenerator;
 use Plan2net\FakeFal\Utility\Configuration;
 use Plan2net\FakeFal\Utility\FileSignature;
 use RuntimeException;
@@ -156,6 +157,9 @@ class LocalFakeDriver extends LocalDriver
     {
         $filePath = $this->getAbsolutePath($file->getIdentifier());
         $generatorType = Configuration::getExtensionConfiguration('imageGeneratorType');
+        if (empty($generatorType)) {
+            $generatorType = LocalFakeImageGenerator::class;
+        }
         /** @var ImageGeneratorInterface $generator */
         $generator = ImageGeneratorFactory::create($generatorType);
 
