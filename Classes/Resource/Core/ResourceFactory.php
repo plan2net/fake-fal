@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Plan2net\FakeFal\Resource\Core;
 
-
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\Resource\Exception\FileDoesNotExistException;
@@ -37,7 +36,7 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
      */
     public function retrieveFileOrFolderObject($input)
     {
-        $input = str_replace($this->getPublicPath() . '/', '', $input);
+        $input = str_replace(self::getPublicPath() . '/', '', $input);
 
         if (GeneralUtility::isFirstPartOfStr($input, 'file:')) {
             $input = substr($input, 5);
@@ -58,7 +57,7 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
                     return null;
                 }
 
-                $input = PathUtility::getRelativePath($this->getPublicPath() . '/',
+                $input = PathUtility::getRelativePath(self::getPublicPath() . '/',
                         PathUtility::dirname($input)) . PathUtility::basename($input);
 
                 return $this->getFileObjectFromCombinedIdentifier($input);
@@ -69,8 +68,9 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
         $input = PathUtility::getCanonicalPath(ltrim($input, '/'));
         // Fix core bug, value is url encoded
         $input = urldecode($input);
-        // fake_fal: don't check for physical file here
-        if (!empty($input) && $this->isFile($input)) {
+        // fake_fal: check for physical file (e.g. temporary assets like online media preview images)
+        // and for files available in the database (that should be created)
+        if (!empty($input) && (@is_file(self::getPublicPath() . '/' . $input) || $this->isFile($input))) {
             return $this->getFileObjectFromCombinedIdentifier($input);
         }
 
@@ -81,7 +81,7 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
      * @return string
      * @deprecated
      */
-    protected function getPublicPath(): string
+    protected static function getPublicPath(): string
     {
         if (VersionNumberUtility::convertVersionNumberToInteger(TYPO3_version) >= 8007099) {
             return \TYPO3\CMS\Core\Core\Environment::getPublicPath();
@@ -104,7 +104,7 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
         foreach ($this->getLocalStorages() as $storage) {
             // Remove possible path prefix
             $storageBasePath = rtrim($storage->getConfiguration()['basePath'], '/');
-            $pathSite = $this->getPublicPath();
+            $pathSite = self::getPublicPath();
             if (strpos($storageBasePath, $pathSite) === 0) {
                 $storageBasePath = substr($storageBasePath, strlen($pathSite));
             }

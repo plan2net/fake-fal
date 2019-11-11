@@ -218,6 +218,10 @@ class LocalFakeDriver extends LocalDriver
      */
     public function fileExists($fileIdentifier): bool
     {
+        if (empty($fileIdentifier)) {
+            return false;
+        }
+
         $absoluteFilePath = $this->getAbsolutePath($fileIdentifier);
         if (!is_file($absoluteFilePath)) {
             $file = $this->createFakeFile($fileIdentifier);
