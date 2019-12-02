@@ -50,6 +50,21 @@ class LocalFakeDriver extends LocalDriver
 
     /**
      * @param string $fileIdentifier
+     * @return string
+     * @throws InvalidPathException
+     */
+    public function getFileContents($fileIdentifier): string
+    {
+        $absoluteFilePath = $this->getAbsolutePath($fileIdentifier);
+        if (!file_exists($absoluteFilePath) || !is_file($absoluteFilePath)) {
+            $this->createFakeFile($fileIdentifier);
+        }
+
+        return file_get_contents($absoluteFilePath) ?: '';
+    }
+
+    /**
+     * @param string $fileIdentifier
      * @return null|File
      * @throws InvalidPathException
      */
