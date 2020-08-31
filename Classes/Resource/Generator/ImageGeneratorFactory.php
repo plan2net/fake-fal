@@ -15,8 +15,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 class ImageGeneratorFactory
 {
     /**
-     * @param string $generatorType
-     * @return ImageGeneratorInterface
      * @throws InvalidArgumentException
      */
     public static function create(string $generatorType): ImageGeneratorInterface

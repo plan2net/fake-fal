@@ -1,0 +1,29 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  Plan2net\FakeFal\:
+    resource: '../Classes/*'
+
+  Plan2net\FakeFal\Command\ListStorages:
+    tags:
+      - name: 'console.command'
+        command: 'fake-fal:list'
+
+  Plan2net\FakeFal\Command\ToggleFakeMode:
+    tags:
+      - name: 'console.command'
+        command: 'fake-fal:toggle'
+
+  Plan2net\FakeFal\Command\CreateFakeFiles:
+    tags:
+      - name: 'console.command'
+        command: 'fake-fal:create'
+
+  Plan2net\FakeFal\EventListener\ResourceStorageInitializationEventListener:
+    tags:
+      - name: event.listener
+        identifier: 'fakeFalResourceStorageInitializationEventListener'
+        event: TYPO3\CMS\Core\Resource\Event\AfterResourceStorageInitializationEvent

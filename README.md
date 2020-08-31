@@ -34,32 +34,42 @@ Save the configuration.
 After activating the local fake driver globally, you have to activate the fake mode for specific local storages.
 Either via backend (by editing the storage record) or via command line command:
 
-    fakestorage:togglefakemode
+    fake-fal:toggle
     
 will set all local storages to fake mode.
 
-    fakestorage:togglefakemode 2,14,99
+    fake-fal:toggle 2,14,99
     
 will set the given storages (with ID `2`, `14` and `99`) to fake mode.
 
 ## Available Commands:
 
-    fakestorage:liststorages
+    fake-fal:list
     
 List all existing storages as a table (command line only)
 
-    fakestorage:togglefakemode
+```
+typo3 fake-fal:list
++----+---------------------------+--------+-----------+
+| ID | Name                      | Driver | Fake mode |
++----+---------------------------+--------+-----------+
+| 1  | fileadmin/ (auto-created) | Local  | enabled   |
+| 2  | fileadmin_sec/            | Local  | disabled  |
++----+---------------------------+--------+-----------+
+```
+
+    fake-fal:toggle
     
 Set given storage(s) to fake mode: check flag for fake mode, clear processed files
 
-    fakestorage:createfakefiles
+    fake-fal:create
     
 Create fake files within given storage(s); the existing real files will be kept
 
 # Compatibility
 
-The extension is tested and works with TYPO3 CMS LTS 8.7 and 9.5 and PHP > 7.1.
-Support for TYPO3 CMS 6 and 7 and PHP < 7.1 has been dropped deliberatly.
+The recent extension version works with TYPO3 CMS LTS 10.4 and PHP >= 7.2.
+Use the versions < 3.0 for TYPO3 8 and 9 and PHP >= 7.0.
 
 # Integration information
 

@@ -3,6 +3,10 @@ declare(strict_types=1);
 
 namespace Plan2net\FakeFal\Utility;
 
+use Exception;
+use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+
 /**
  * Class Configuration
  *
@@ -19,9 +23,12 @@ class Configuration
      */
     public static function getExtensionConfiguration($key = null)
     {
-        $configuration = [];
-        if (isset($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['fake_fal'])) {
-            $configuration = (array)unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['fake_fal']);
+        /** @var ExtensionConfiguration $helper */
+        $helper = GeneralUtility::makeInstance(ExtensionConfiguration::class);
+        try {
+            $configuration = $helper->get('fake_fal');
+        } catch (Exception $e) {
+            $configuration = [];
         }
         if (is_string($key)) {
             if (isset($configuration[$key])) {

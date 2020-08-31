@@ -18,22 +18,17 @@ class ImageDimensions implements SingletonInterface
     /**
      * @var GraphicalFunctions
      */
-    protected $graphicalFunctions;
+    protected static $graphicalFunctions;
 
-    /**
-     * @param string $filepath
-     * @param int $width
-     * @param int $height
-     */
-    public function write(string $filepath, int $width, int $height)
+    public function write(string $filepath, int $width, int $height): void
     {
         $font = GeneralUtility::getFileAbsFileName('EXT:core/Resources/Private/Font/nimbus.ttf');
         // Calculate font size and text position (centered)
         $text = $width . 'x' . $height;
         $fontSize = $this->calculateFontSize($font, $width, $height, $text);
-        list($x, $y) = $this->calculateTextPosition($font, $fontSize, $width, $height, $text);
+        [$x, $y] = $this->calculateTextPosition($font, $fontSize, $width, $height, $text);
         // Write text onto image
-        $graphicalFunctions = $this->getGraphicalFunctionsObject();
+        $graphicalFunctions = self::getGraphicalFunctionsObject();
         $image = $graphicalFunctions->imageCreateFromFile($filepath);
         if ($image) {
             $black = imagecolorallocate($image, 100, 100, 100);
@@ -45,12 +40,6 @@ class ImageDimensions implements SingletonInterface
     /**
      * Calculate font size based on font, image width and the text
      * so the text fits the image with some margin
-     *
-     * @param string $font
-     * @param int $width
-     * @param int $height
-     * @param string $text
-     * @return int
      */
     protected function calculateFontSize(string $font, int $width, int $height, string $text): int
     {
@@ -80,13 +69,6 @@ class ImageDimensions implements SingletonInterface
 
     /**
      * Calculate text position (centered)
-     *
-     * @param string $font
-     * @param int $fontSize
-     * @param int $width
-     * @param int $height
-     * @param string $text
-     * @return array
      */
     protected function calculateTextPosition(
         string $font,
@@ -105,17 +87,13 @@ class ImageDimensions implements SingletonInterface
         ];
     }
 
-    /**
-     * @return GraphicalFunctions
-     */
-    protected function getGraphicalFunctionsObject(): GraphicalFunctions
+    protected static function getGraphicalFunctionsObject(): GraphicalFunctions
     {
-        if ($this->graphicalFunctions === null) {
+        if (self::$graphicalFunctions === null) {
             /** @var GraphicalFunctions $graphicalFunctionsObject */
-            $this->graphicalFunctions = GeneralUtility::makeInstance(GraphicalFunctions::class);
-            $this->graphicalFunctions->init();
+            self::$graphicalFunctions = GeneralUtility::makeInstance(GraphicalFunctions::class);
         }
 
-        return $this->graphicalFunctions;
+        return self::$graphicalFunctions;
     }
 }

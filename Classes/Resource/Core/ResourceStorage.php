@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Plan2net\FakeFal\Resource\Core;
 
+use Psr\EventDispatcher\EventDispatcherInterface;
 use TYPO3\CMS\Core\Resource\Driver\DriverInterface;
 
 /**
@@ -20,10 +21,11 @@ class ResourceStorage extends \TYPO3\CMS\Core\Resource\ResourceStorage
      *
      * @param DriverInterface $driver
      * @param array $storageRecord
+     * @param EventDispatcherInterface|null $eventDispatcher
      */
-    public function __construct(DriverInterface $driver, array $storageRecord)
+    public function __construct(DriverInterface $driver, array $storageRecord, EventDispatcherInterface $eventDispatcher = null)
     {
-        parent::__construct($driver, $storageRecord);
+        parent::__construct($driver, $storageRecord, $eventDispatcher);
 
         if ($this->isOnline === false &&
             $this->storageRecord['tx_fakefal_enable'] &&

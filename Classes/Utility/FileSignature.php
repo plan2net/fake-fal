@@ -16,8 +16,6 @@ class FileSignature
      * see https://en.wikipedia.org/wiki/List_of_file_signatures,
      * https://www.garykessler.net/library/file_sigs.html
      * and other sources for a reference
-     *
-     * @var array
      */
     static protected $signatures = [
         'PDF' => '255044462d',
@@ -30,11 +28,8 @@ class FileSignature
 
     /**
      * Returns a binary representation of the signature
-     *
-     * @param string $fileExtension
-     * @return string|null
      */
-    public static function getSignature(string $fileExtension)
+    public static function getSignature(string $fileExtension): ?string
     {
         $fileExtension = strtoupper($fileExtension);
 

@@ -20,14 +20,10 @@ class LocalFakeImageGenerator implements ImageGeneratorInterface
     /**
      * Generate a new local file based on File $file metadata
      * in $filePath path
-     *
-     * @param File $file
-     * @param string $filePath
-     * @return mixed
      */
     public function generate(File $file, string $filePath): string
     {
-        list($width, $height) = $this->getFileDimensions($file);
+        [$width, $height] = $this->getFileDimensions($file);
         if ($width && $height) {
             $params = '-size ' . $width . 'x' . $height . ' xc:lightgrey';
             $cmd = CommandUtility::imageMagickCommand(
@@ -47,9 +43,6 @@ class LocalFakeImageGenerator implements ImageGeneratorInterface
 
     /**
      * Return an array with width and height
-     *
-     * @param File $file
-     * @return array
      */
     protected function getFileDimensions(File $file): array
     {

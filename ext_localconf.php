@@ -2,20 +2,8 @@
 
 defined('TYPO3_MODE') or die('Access denied');
 
-(static function() {
-    // @todo after TYPO3 8 support dropped, use the API
+(static function () {
     if ((bool)\Plan2net\FakeFal\Utility\Configuration::getExtensionConfiguration('enable')) {
-        /** @var \TYPO3\CMS\Extbase\SignalSlot\Dispatcher $dispatcher */
-        $dispatcher = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(
-            TYPO3\CMS\Extbase\SignalSlot\Dispatcher::class
-        );
-        $dispatcher->connect(
-            \TYPO3\CMS\Core\Resource\ResourceFactory::class,
-            \TYPO3\CMS\Core\Resource\ResourceFactoryInterface::SIGNAL_PostProcessStorage,
-            \Plan2net\FakeFal\Resource\Slot\ResourceFactorySlot::class,
-            'initializeResourceStorage'
-        );
-
         $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Core\Resource\ResourceFactory::class] = [
             'className' => \Plan2net\FakeFal\Resource\Core\ResourceFactory::class
         ];
@@ -24,6 +12,6 @@ defined('TYPO3_MODE') or die('Access denied');
         ];
         // @todo after TYPO3 8 support dropped, use Symfony console commands
         $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['extbase']['commandControllers'][] =
-            \Plan2net\FakeFal\Command\FakeStorageCommandController::class;
+            \Plan2net\FakeFal\Command\SetupFakeStorage::class;
     }
 })();

@@ -12,10 +12,5 @@ use TYPO3\CMS\Core\Resource\File;
  */
 interface ImageGeneratorInterface
 {
-    /**
-     * @param File $file
-     * @param string $filePath
-     * @return mixed
-     */
     public function generate(File $file, string $filePath): string;
 }

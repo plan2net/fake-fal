@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Plan2net\FakeFal\Resource\Core;
 
+use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\Resource\Exception\FileDoesNotExistException;
@@ -15,7 +16,11 @@ use TYPO3\CMS\Core\Resource\StorageRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
-use TYPO3\CMS\Core\Utility\VersionNumberUtility;
+use function explode;
+use function ltrim;
+use function str_replace;
+use function strpos;
+use function substr;
 
 /**
  * Class ResourceFactory
@@ -36,19 +41,21 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
      */
     public function retrieveFileOrFolderObject($input)
     {
-        $input = str_replace(self::getPublicPath() . '/', '', $input);
+        // Remove Environment::getPublicPath() because absolute paths under Windows systems contain ':'
+        // This is done in all considered sub functions anyway
+        $input = str_replace(Environment::getPublicPath() . '/', '', $input);
 
         if (GeneralUtility::isFirstPartOfStr($input, 'file:')) {
             $input = substr($input, 5);
-
             return $this->retrieveFileOrFolderObject($input);
         }
         if (MathUtility::canBeInterpretedAsInteger($input)) {
             return $this->getFileObject($input);
         }
         if (strpos($input, ':') > 0) {
-            list($prefix) = explode(':', $input);
+            [$prefix] = explode(':', $input);
             if (MathUtility::canBeInterpretedAsInteger($prefix)) {
+                // path or folder in a valid storageUID
                 return $this->getObjectFromCombinedIdentifier($input);
             }
             if ($prefix === 'EXT') {
@@ -57,54 +64,32 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
                     return null;
                 }
 
-                $input = PathUtility::getRelativePath(self::getPublicPath() . '/',
-                        PathUtility::dirname($input)) . PathUtility::basename($input);
-
+                $input = PathUtility::getRelativePath(Environment::getPublicPath() . '/', PathUtility::dirname($input)) . PathUtility::basename($input);
                 return $this->getFileObjectFromCombinedIdentifier($input);
             }
-
             return null;
         }
+        // this is a backwards-compatible way to access "0-storage" files or folders
+        // eliminate double slashes, /./ and /../
         $input = PathUtility::getCanonicalPath(ltrim($input, '/'));
         // Fix core bug, value is url encoded
         $input = urldecode($input);
         // fake_fal: check for physical file (e.g. temporary assets like online media preview images)
         // and for files available in the database (that should be created)
-        if (!empty($input) && (@is_file(self::getPublicPath() . '/' . $input) || $this->isFile($input))) {
+        if (!empty($input) && (@is_file(Environment::getPublicPath() . '/' . $input) || $this->isFile($input))) {
             return $this->getFileObjectFromCombinedIdentifier($input);
         }
 
         return $this->getFolderObjectFromCombinedIdentifier($input);
     }
 
-    /**
-     * @return string
-     * @deprecated
-     */
-    protected static function getPublicPath(): string
-    {
-        if (VersionNumberUtility::convertVersionNumberToInteger(TYPO3_version) >= 8007099) {
-            return \TYPO3\CMS\Core\Core\Environment::getPublicPath();
-        }
-
-        return PATH_site; // deprecated
-    }
-
-    /**
-     * Find a sys_file entry by searching for matches
-     * on the last part of the identifier
-     *
-     * @param string $path
-     * @return bool
-     */
     protected function isFile(string $path): bool
     {
         $originalPath = $path;
-        /** @var ResourceStorage $storage */
         foreach ($this->getLocalStorages() as $storage) {
             // Remove possible path prefix
             $storageBasePath = rtrim($storage->getConfiguration()['basePath'], '/');
-            $pathSite = self::getPublicPath();
+            $pathSite = Environment::getPublicPath();
             if (strpos($storageBasePath, $pathSite) === 0) {
                 $storageBasePath = substr($storageBasePath, strlen($pathSite));
             }
