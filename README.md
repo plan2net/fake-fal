@@ -68,7 +68,7 @@ Create fake files within given storage(s); the existing real files will be kept
 
 # Compatibility
 
-The recent extension version works with TYPO3 CMS LTS 10.4 and PHP >= 7.2.
+The recent extension version works with TYPO3 CMS 10/11 and PHP >= 7.4.
 Use the versions < 3.0 for TYPO3 8 and 9 and PHP >= 7.0.
 
 # Integration information

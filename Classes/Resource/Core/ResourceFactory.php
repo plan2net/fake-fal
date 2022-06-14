@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Plan2net\FakeFal\Resource\Core;
@@ -25,7 +26,6 @@ use function substr;
 /**
  * Class ResourceFactory
  *
- * @package Plan2net\FakeFal\Resource\Core
  * @author Wolfgang Klinger <wk@plan2.net>
  */
 class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
@@ -35,9 +35,11 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
      * for modifications see fake_fal comment inline
      *
      * @param string $input
-     * @return File|FileInterface|Folder|null
+     *
      * @throws FileDoesNotExistException
      * @throws ResourceDoesNotExistException
+     *
+     * @return File|FileInterface|Folder|null
      */
     public function retrieveFileOrFolderObject($input)
     {
@@ -47,6 +49,7 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
 
         if (GeneralUtility::isFirstPartOfStr($input, 'file:')) {
             $input = substr($input, 5);
+
             return $this->retrieveFileOrFolderObject($input);
         }
         if (MathUtility::canBeInterpretedAsInteger($input)) {
@@ -58,15 +61,17 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
                 // path or folder in a valid storageUID
                 return $this->getObjectFromCombinedIdentifier($input);
             }
-            if ($prefix === 'EXT') {
+            if ('EXT' === $prefix) {
                 $input = GeneralUtility::getFileAbsFileName($input);
                 if (empty($input)) {
                     return null;
                 }
 
                 $input = PathUtility::getRelativePath(Environment::getPublicPath() . '/', PathUtility::dirname($input)) . PathUtility::basename($input);
+
                 return $this->getFileObjectFromCombinedIdentifier($input);
             }
+
             return null;
         }
         // this is a backwards-compatible way to access "0-storage" files or folders
@@ -90,16 +95,16 @@ class ResourceFactory extends \TYPO3\CMS\Core\Resource\ResourceFactory
             // Remove possible path prefix
             $storageBasePath = rtrim($storage->getConfiguration()['basePath'], '/');
             $pathSite = Environment::getPublicPath();
-            if (strpos($storageBasePath, $pathSite) === 0) {
+            if (0 === strpos($storageBasePath, $pathSite)) {
                 $storageBasePath = substr($storageBasePath, strlen($pathSite));
             }
-            if (strpos($originalPath, $storageBasePath) === 0) {
+            if (0 === strpos($originalPath, $storageBasePath)) {
                 $path = substr($originalPath, strlen($storageBasePath));
             }
 
             /** @var QueryBuilder $queryBuilder */
             $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file');
-            if ((bool)$queryBuilder
+            if ((bool) $queryBuilder
                 ->count('uid')
                 ->from('sys_file')
                 ->where(

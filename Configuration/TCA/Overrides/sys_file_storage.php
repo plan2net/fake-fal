@@ -1,6 +1,6 @@
 <?php
 
-defined('TYPO3_MODE') or die ('Access denied.');
+defined('TYPO3_MODE') || exit('Access denied.');
 
 $fields = [
     'tx_fakefal_enable' => [
@@ -20,4 +20,3 @@ $fields = [
     '',
     'after:is_default'
 );
-

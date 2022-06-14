@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Plan2net\FakeFal\Utility;
@@ -6,7 +7,6 @@ namespace Plan2net\FakeFal\Utility;
 /**
  * Class FileSignature
  *
- * @package Plan2net\FakeFal\Utility
  * @author  Wolfgang Klinger <wk@plan2.net>
  * @author  Martin Kutschker <mk@plan2.net>
  */
@@ -17,7 +17,7 @@ class FileSignature
      * https://www.garykessler.net/library/file_sigs.html
      * and other sources for a reference
      */
-    static protected $signatures = [
+    protected static array $signatures = [
         'PDF' => '255044462d',
         'PPT' => 'D0CF11E0A1B11AE1',
         'DOC' => 'D0CF11E0A1B11AE1',

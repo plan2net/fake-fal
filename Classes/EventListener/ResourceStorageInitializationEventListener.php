@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Plan2net\FakeFal\EventListener;
@@ -11,7 +12,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 /**
  * Class ResourceStorageInitializationEventListener
  *
- * @package Plan2net\FakeFal\EventListener
  * @author Wolfgang Klinger <wk@plan2.net>
  */
 final class ResourceStorageInitializationEventListener
@@ -20,7 +20,7 @@ final class ResourceStorageInitializationEventListener
     {
         $storage = $event->getStorage();
         $storageRecord = $storage->getStorageRecord();
-        if ($storageRecord['uid'] === 0) {
+        if (0 === $storageRecord['uid']) {
             $configuration = $storage->getConfiguration();
             // Default configuration
             $configuration += [
@@ -30,7 +30,7 @@ final class ResourceStorageInitializationEventListener
             $storage->setConfiguration($configuration);
             $storage->setDriver($this->getFakeDriver($storage));
         } else {
-            $isLocalDriver = $storageRecord['driver'] === 'Local';
+            $isLocalDriver = 'Local' === $storageRecord['driver'];
             $isFakeDriverEnabled = !empty($storageRecord['tx_fakefal_enable']);
             if ($isLocalDriver && $isFakeDriverEnabled) {
                 $storage->setDriver($this->getFakeDriver($storage));

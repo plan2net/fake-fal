@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Plan2net\FakeFal\Resource\Generator;
@@ -12,7 +13,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 /**
  * Class LocalFakeImageGenerator
  *
- * @package Plan2net\FakeFal\Resource\Generator
  * @author Wolfgang Klinger <wk@plan2.net>
  */
 class LocalFakeImageGenerator implements ImageGeneratorInterface
@@ -51,8 +51,8 @@ class LocalFakeImageGenerator implements ImageGeneratorInterface
         $metaData = $metaDataRepository->findByFile($file);
 
         return [
-            (int)$metaData['width'],
-            (int)$metaData['height']
+            (int) $metaData['width'],
+            (int) $metaData['height']
         ];
     }
 }

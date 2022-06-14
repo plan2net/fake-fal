@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Plan2net\FakeFal\Resource\Driver;
@@ -27,15 +28,13 @@ use UnexpectedValueException;
 /**
  * Class LocalFakeDriver
  *
- * @package Plan2net\FakeFal\Resource\Driver
  * @author Wolfgang Klinger <wk@plan2.net>
  */
 class LocalFakeDriver extends LocalDriver
 {
     /**
      * @param string $fileIdentifier
-     * @param array $propertiesToExtract
-     * @return array
+     *
      * @throws InvalidPathException
      */
     public function getFileInfoByIdentifier($fileIdentifier, array $propertiesToExtract = []): array
@@ -50,7 +49,7 @@ class LocalFakeDriver extends LocalDriver
 
     /**
      * @param string $fileIdentifier
-     * @return string
+     *
      * @throws InvalidPathException
      */
     public function getFileContents($fileIdentifier): string
@@ -64,8 +63,6 @@ class LocalFakeDriver extends LocalDriver
     }
 
     /**
-     * @param string $fileIdentifier
-     * @return null|File
      * @throws InvalidPathException
      */
     protected function createFakeFile(string $fileIdentifier): ?File
@@ -80,7 +77,7 @@ class LocalFakeDriver extends LocalDriver
             }
             // Can't use the $file->getXXX() methods as this would possibly lead to recursion
             $data = $this->getFileData($file);
-            if ((int)$data['type'] === AbstractFile::FILETYPE_IMAGE) {
+            if (AbstractFile::FILETYPE_IMAGE === (int) $data['type']) {
                 $filePath = $this->createFakeImage($file);
             } else {
                 $filePath = $this->createFakeDocument($file);
@@ -97,9 +94,6 @@ class LocalFakeDriver extends LocalDriver
      * Returns a File object built from data in the sys_file table.
      * Usage of the ResourceFactory to get the file is impossible
      * as this would lead to endless recursion
-     *
-     * @param string $fileIdentifier
-     * @return File|null
      */
     protected function getFileByIdentifier(string $fileIdentifier): ?File
     {
@@ -110,7 +104,7 @@ class LocalFakeDriver extends LocalDriver
             ->select('*')
             ->from('sys_file')
             ->where(
-                $queryBuilder->expr()->eq('storage', $queryBuilder->createNamedParameter((int)$this->storageUid)),
+                $queryBuilder->expr()->eq('storage', $queryBuilder->createNamedParameter((int) $this->storageUid)),
                 $queryBuilder->expr()->eq('identifier', $queryBuilder->createNamedParameter($fileIdentifier))
             )
             ->execute()->fetch(PDO::FETCH_ASSOC);
@@ -127,13 +121,12 @@ class LocalFakeDriver extends LocalDriver
      * Creates a fake folder when required,
      * except for default storage (0)
      *
-     * @param string $absoluteFolderPath
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
     protected function createFakeFolder(string $absoluteFolderPath): void
     {
-        if ($this->storageUid === 0) {
+        if (0 === $this->storageUid) {
             throw new UnexpectedValueException('Local default storage, no folder created');
         }
 
@@ -144,10 +137,6 @@ class LocalFakeDriver extends LocalDriver
         }
     }
 
-    /**
-     * @param File $file
-     * @return array
-     */
     protected function getFileData(File $file): array
     {
         /** @var QueryBuilder $queryBuilder */
@@ -163,8 +152,6 @@ class LocalFakeDriver extends LocalDriver
     }
 
     /**
-     * @param File $file
-     * @return string
      * @throws InvalidPathException
      */
     protected function createFakeImage(File $file): string
@@ -179,6 +166,7 @@ class LocalFakeDriver extends LocalDriver
         try {
             $filePath = $generator->generate($file, $filePath);
         } catch (Exception $e) {
+            // Ignore
         }
 
         return $filePath;
@@ -187,8 +175,6 @@ class LocalFakeDriver extends LocalDriver
     /**
      * Creates files with a valid file signature
      *
-     * @param File $file
-     * @return string
      * @throws InvalidPathException
      */
     protected function createFakeDocument(File $file): string
@@ -205,7 +191,7 @@ class LocalFakeDriver extends LocalDriver
     }
 
     /**
-     * @param File $file
+     * @throws \Doctrine\DBAL\DBALException
      */
     protected function markFileAsFake(File $file): void
     {
@@ -226,7 +212,7 @@ class LocalFakeDriver extends LocalDriver
      * created if it does not physically exist on disk.
      *
      * @param string $fileIdentifier
-     * @return bool
+     *
      * @throws InvalidPathException
      */
     public function fileExists($fileIdentifier): bool
@@ -238,7 +224,7 @@ class LocalFakeDriver extends LocalDriver
         $absoluteFilePath = $this->getAbsolutePath($fileIdentifier);
         if (!is_file($absoluteFilePath)) {
             $file = $this->createFakeFile($fileIdentifier);
-            if ($file === null) {
+            if (null === $file) {
                 // Unable to create file
                 return false;
             }
@@ -249,7 +235,7 @@ class LocalFakeDriver extends LocalDriver
 
     /**
      * @param string $folderIdentifier
-     * @return bool
+     *
      * @throws InvalidPathException
      */
     public function folderExists($folderIdentifier): bool
@@ -269,8 +255,8 @@ class LocalFakeDriver extends LocalDriver
 
     /**
      * @param string $fileIdentifier
-     * @param bool $writable
-     * @return string
+     * @param bool   $writable
+     *
      * @throws InvalidPathException
      */
     public function getFileForLocalProcessing($fileIdentifier, $writable = true): string
@@ -291,8 +277,6 @@ class LocalFakeDriver extends LocalDriver
     }
 
     /**
-     * @param array $configuration
-     * @return string
      * @throws InvalidConfigurationException
      * @throws InvalidPathException
      */
@@ -305,21 +289,16 @@ class LocalFakeDriver extends LocalDriver
      * Calculates the absolute path to this drivers storage location.
      * Creates the given base path directory if it does not exist.
      *
-     * @param array $configuration
-     * @return string
      * @throws InvalidConfigurationException
      * @throws InvalidPathException
      */
     protected function calculateBasePathAndCreateMissingDirectories(array $configuration): string
     {
         if (!array_key_exists('basePath', $configuration) || empty($configuration['basePath'])) {
-            throw new InvalidConfigurationException(
-                'Configuration must contain base path.',
-                1346510477
-            );
+            throw new InvalidConfigurationException('Configuration must contain base path.', 1346510477);
         }
 
-        if (!empty($configuration['pathType']) && $configuration['pathType'] === 'relative') {
+        if (!empty($configuration['pathType']) && 'relative' === $configuration['pathType']) {
             $relativeBasePath = $configuration['basePath'];
             $absoluteBasePath = Environment::getPublicPath() . '/' . $relativeBasePath;
         } else {
@@ -334,7 +313,7 @@ class LocalFakeDriver extends LocalDriver
 
         $processingFolderPath = $this->getProcessingFolderForStorage($this->storageUid);
         // Check if this a relative or absolute path
-        if (strpos($processingFolderPath, '/') !== 0) {
+        if (0 !== strpos($processingFolderPath, '/')) {
             $processingFolderPath = rtrim($absoluteBasePath, '/') . '/' . $processingFolderPath;
         }
         if (!is_dir($processingFolderPath)) {
@@ -345,20 +324,18 @@ class LocalFakeDriver extends LocalDriver
     }
 
     /**
-     * @param int $storageId
-     * @return string
-     * @throws InvalidPathException
+     * @throws InvalidPathException|\Doctrine\DBAL\DBALException
      */
     protected function getProcessingFolderForStorage(int $storageId): string
     {
         // Default storage
-        if ($storageId === 0) {
+        if (0 === $storageId) {
             return 'typo3temp/assets/_processed_/';
         }
 
         /** @var QueryBuilder $queryBuilder */
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file_storage');
-        $path = (string)$queryBuilder
+        $path = (string) $queryBuilder
             ->select('processingfolder')
             ->from('sys_file_storage')
             ->where(
@@ -369,9 +346,9 @@ class LocalFakeDriver extends LocalDriver
         if (!empty($path)) {
             // Check if this is a combined folder path
             $parts = GeneralUtility::trimExplode(':', $path);
-            if (count($parts) === 2) {
+            if (2 === count($parts)) {
                 // First part is the numeric storage ID
-                $referencedStorageId = (int)$parts[0];
+                $referencedStorageId = (int) $parts[0];
                 $path = $this->getBasePathForStorage($referencedStorageId) .
                     $this->getProcessingFolderForStorage($referencedStorageId);
             }
@@ -381,15 +358,13 @@ class LocalFakeDriver extends LocalDriver
     }
 
     /**
-     * @param int $storageId
-     * @return string
-     * @throws InvalidPathException
+     * @throws InvalidPathException|\Doctrine\DBAL\DBALException
      */
     protected function getBasePathForStorage(int $storageId): string
     {
         /** @var QueryBuilder $queryBuilder */
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file_storage');
-        $configuration = (string)$queryBuilder
+        $configuration = (string) $queryBuilder
             ->select('configuration')
             ->from('sys_file_storage')
             ->where(
@@ -401,7 +376,7 @@ class LocalFakeDriver extends LocalDriver
         $flexFormService = GeneralUtility::makeInstance(FlexFormService::class);
         $configuration = $flexFormService->convertFlexFormContentToArray($configuration);
 
-        if (!empty($configuration['pathType']) && $configuration['pathType'] === 'relative') {
+        if (!empty($configuration['pathType']) && 'relative' === $configuration['pathType']) {
             $relativeBasePath = $configuration['basePath'];
             $absoluteBasePath = Environment::getPublicPath() . '/' . $relativeBasePath;
         } else {
@@ -412,9 +387,6 @@ class LocalFakeDriver extends LocalDriver
         return rtrim($absoluteBasePath, '/') . '/';
     }
 
-    /**
-     * @param string $path
-     */
     protected function createDirectory(string $path): void
     {
         try {

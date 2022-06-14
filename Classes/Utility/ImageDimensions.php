@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Plan2net\FakeFal\Utility;
@@ -10,15 +11,16 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 /**
  * Class ImageDimensions
  *
- * @package Plan2net\FakeFal\Utility
  * @author Wolfgang Klinger <wk@plan2.net>
  */
-class ImageDimensions implements SingletonInterface
+final class ImageDimensions implements SingletonInterface
 {
-    /**
-     * @var GraphicalFunctions
-     */
-    protected static $graphicalFunctions;
+    private GraphicalFunctions $graphicalFunctions;
+
+    public function __construct(GraphicalFunctions $graphicalFunctions)
+    {
+        $this->graphicalFunctions = $graphicalFunctions;
+    }
 
     public function write(string $filepath, int $width, int $height): void
     {
@@ -28,12 +30,11 @@ class ImageDimensions implements SingletonInterface
         $fontSize = $this->calculateFontSize($font, $width, $height, $text);
         [$x, $y] = $this->calculateTextPosition($font, $fontSize, $width, $height, $text);
         // Write text onto image
-        $graphicalFunctions = self::getGraphicalFunctionsObject();
-        $image = $graphicalFunctions->imageCreateFromFile($filepath);
+        $image = $this->graphicalFunctions->imageCreateFromFile($filepath);
         if ($image) {
             $black = imagecolorallocate($image, 100, 100, 100);
             imagettftext($image, $fontSize, 0, $x, $y, $black, $font, $text);
-            $graphicalFunctions->ImageWrite($image, $filepath);
+            $this->graphicalFunctions->ImageWrite($image, $filepath);
         }
     }
 
@@ -41,7 +42,7 @@ class ImageDimensions implements SingletonInterface
      * Calculate font size based on font, image width and the text
      * so the text fits the image with some margin
      */
-    protected function calculateFontSize(string $font, int $width, int $height, string $text): int
+    private function calculateFontSize(string $font, int $width, int $height, string $text): int
     {
         // add some margin
         $width -= $width * 0.1;
@@ -64,13 +65,13 @@ class ImageDimensions implements SingletonInterface
             }
         }
 
-        return $fontSize < 12 ? 12 : (int)$fontSize;
+        return $fontSize < 12 ? 12 : (int) $fontSize;
     }
 
     /**
      * Calculate text position (centered)
      */
-    protected function calculateTextPosition(
+    private function calculateTextPosition(
         string $font,
         int $fontSize,
         int $width,
@@ -82,18 +83,8 @@ class ImageDimensions implements SingletonInterface
         $textHeight = $textBox[7] - $textBox[1];
 
         return [
-            (int)floor(($width / 2) - ($textWidth / 2)) - 1,
-            (int)floor(($height / 2) - ($textHeight / 2))
+            (int) floor(($width / 2) - ($textWidth / 2)) - 1,
+            (int) floor(($height / 2) - ($textHeight / 2))
         ];
-    }
-
-    protected static function getGraphicalFunctionsObject(): GraphicalFunctions
-    {
-        if (self::$graphicalFunctions === null) {
-            /** @var GraphicalFunctions $graphicalFunctionsObject */
-            self::$graphicalFunctions = GeneralUtility::makeInstance(GraphicalFunctions::class);
-        }
-
-        return self::$graphicalFunctions;
     }
 }

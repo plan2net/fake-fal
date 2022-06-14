@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Plan2net\FakeFal\Command;
@@ -14,7 +15,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 /**
  * Class ListStorages
  *
- * @package Plan2net\FakeFal\Command
  * @author  Ioulia Kondratovitch <ik@plan2.net>
  * @author  Wolfgang Klinger <wk@plan2.net>
  */
@@ -27,6 +27,9 @@ class ListStorages extends Command
         $this->setDescription('List storages with fake fal mode status');
     }
 
+    /**
+     * @throws \Doctrine\DBAL\DBALException
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         /** @var QueryBuilder $queryBuilder */
@@ -38,7 +41,7 @@ class ListStorages extends Command
             ->execute()->fetchAll();
 
         foreach ($storages as &$storage) {
-            $storage['tx_fakefal_enable'] = (bool)$storage['tx_fakefal_enable'] ? 'enabled' : 'disabled';
+            $storage['tx_fakefal_enable'] = (bool) $storage['tx_fakefal_enable'] ? 'enabled' : 'disabled';
         }
         unset($storage);
 

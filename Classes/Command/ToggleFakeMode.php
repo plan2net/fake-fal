@@ -1,10 +1,12 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Plan2net\FakeFal\Command;
 
 use Exception;
 use PDO;
+use Plan2net\FakeFal\Resource\Core\ResourceFactory;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -16,7 +18,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 /**
  * Class ToggleFakeMode
  *
- * @package Plan2net\FakeFal\Command
  * @author  Ioulia Kondratovitch <ik@plan2.net>
  * @author  Wolfgang Klinger <wk@plan2.net>
  */
@@ -47,20 +48,21 @@ final class ToggleFakeMode extends Command
                 try {
                     $this->deleteProcessedFilesAndFolders($storageId);
                 } catch (Exception $e) {
+                    // Ignore
                 }
             }
 
             /** @var QueryBuilder $queryBuilder */
             $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
                 ->getQueryBuilderForTable('sys_file_storage');
-            $status = (int)$queryBuilder->select('tx_fakefal_enable')
+            $status = (int) $queryBuilder->select('tx_fakefal_enable')
                 ->from('sys_file_storage')
                 ->where(
                     $queryBuilder->expr()->eq('uid', $storageId)
                 )->execute()->fetchColumn(0);
 
             $countAffected += $queryBuilder->update('sys_file_storage')
-                ->set('tx_fakefal_enable', $status === 1 ? 0 : 1)
+                ->set('tx_fakefal_enable', 1 === $status ? 0 : 1)
                 ->where(
                     $queryBuilder->expr()->eq('uid', $storageId)
                 )->execute();
@@ -72,8 +74,6 @@ final class ToggleFakeMode extends Command
 
     /**
      * Returns a list of local storage IDs
-     *
-     * @return array
      */
     private function getAvailableLocalStorageIds(): array
     {
@@ -85,18 +85,25 @@ final class ToggleFakeMode extends Command
     }
 
     /**
-     * @param int $storageId
+     * @throws \TYPO3\CMS\Core\Resource\Exception\InsufficientFolderAccessPermissionsException
+     * @throws \TYPO3\CMS\Core\Resource\Exception\InvalidPathException
+     * @throws \Doctrine\DBAL\DBALException
+     * @throws \TYPO3\CMS\Core\Resource\Exception\InsufficientUserPermissionsException
+     * @throws \TYPO3\CMS\Core\Resource\Exception\InsufficientFolderReadPermissionsException
+     * @throws \TYPO3\CMS\Core\Resource\Exception\FileOperationErrorException
      */
     private function deleteProcessedFilesAndFolders(int $storageId): void
     {
-        $storage = $this->resourceFactory->getStorageObject($storageId);
+        /** @var ResourceFactory $resourceFactory */
+        $resourceFactory = GeneralUtility::makeInstance(ResourceFactory::class);
+        $storage = $resourceFactory->getStorageObject($storageId);
         $processingFolder = $storage->getProcessingFolder();
 
         foreach ($processingFolder->getFiles() as $file) {
             $file->delete();
         }
-        $subfolders = $storage->getFoldersInFolder($processingFolder);
-        foreach ($subfolders as $folder) {
+        $subFolders = $storage->getFoldersInFolder($processingFolder);
+        foreach ($subFolders as $folder) {
             $storage->deleteFolder($folder, true);
         }
 
@@ -111,10 +118,6 @@ final class ToggleFakeMode extends Command
             ->execute();
     }
 
-    /**
-     * @param QueryBuilder $queryBuilder
-     * @return QueryBuilder
-     */
     private function getLocalStorageStatement(QueryBuilder $queryBuilder): QueryBuilder
     {
         return $queryBuilder

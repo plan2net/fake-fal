@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Plan2net\FakeFal\Command;
@@ -16,7 +17,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 /**
  * Class CreateFakeFiles
  *
- * @package Plan2net\FakeFal\Command
  * @author  Ioulia Kondratovitch <ik@plan2.net>
  * @author  Wolfgang Klinger <wk@plan2.net>
  */
